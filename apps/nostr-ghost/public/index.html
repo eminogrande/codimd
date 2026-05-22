@@ -13,7 +13,7 @@
   <link rel="stylesheet" href="./vendor/codemirror/lib/codemirror.css">
   <link rel="stylesheet" href="./styles.css">
 </head>
-<body class="home-template is-head-stacked has-serif-title has-sans-body is-dropdown-loaded">
+<body class="home-template has-serif-title has-sans-body is-dropdown-loaded">
 <div class="viewport" id="ghostViewport">
   <header id="gh-head" class="gh-head outer">
     <div class="gh-head-inner inner">
@@ -41,15 +41,15 @@
       <div class="site-header-inner inner">
         <h1 class="site-title">Nostr Ghost</h1>
         <p class="site-description">Publishing that looks like Ghost, with private notes encrypted to Nostr.</p>
-        <form class="nostr-open-blog" id="pubkeyForm">
-          <input id="pubkeyInput" name="pubkey" autocomplete="off" spellcheck="false" placeholder="Nostr public key hex">
-          <button class="gh-head-button" type="submit">Open blog</button>
-        </form>
       </div>
     </section>
 
     <main id="site-main" class="site-main outer" data-view="blog">
       <div class="inner posts">
+        <form class="nostr-open-blog" id="pubkeyForm">
+          <input id="pubkeyInput" name="pubkey" autocomplete="off" spellcheck="false" placeholder="Nostr public key hex">
+          <button class="gh-head-button" type="submit">Open blog</button>
+        </form>
         <div class="nostr-feed-tools">
           <p class="post-card-primary-tag">Latest public Nostr posts</p>
           <button class="gh-head-button secondary" id="refreshPublicButton" type="button">Refresh</button>
@@ -88,7 +88,7 @@
       </article>
     </main>
 
-    <section class="studio-root hidden" id="studioView" data-view="studio">
+    <section class="studio-root hidden is-locked" id="studioView" data-view="studio">
       <header class="studio-topbar">
         <a class="studio-brand" href="#/">
           <i class="fa fa-key"></i>
@@ -115,6 +115,15 @@
         <button class="studio-button" id="publishButton" type="button"><i class="fa fa-share-square-o"></i> Publish</button>
         <button class="studio-button primary" id="studioSigninButton" type="button"><i class="fa fa-key"></i> Unlock passkey</button>
       </header>
+
+      <section class="studio-lock" id="studioLock">
+        <div class="studio-lock-panel">
+          <div class="studio-lock-icon"><i class="fa fa-key"></i></div>
+          <h1>Unlock your private studio</h1>
+          <p>Encrypted notes, relay restore, autosave, and publishing stay unavailable until the passkey PRF unlocks your Nostr keys in this browser session.</p>
+          <button class="studio-button primary" id="lockSigninButton" type="button"><i class="fa fa-key"></i> Unlock passkey</button>
+        </div>
+      </section>
 
       <div class="studio-workbench">
         <aside class="studio-sidebar">
@@ -184,7 +193,7 @@
             <span><i class="fa fa-clock-o"></i> <span id="autosaveStatusLabel">encrypted autosave ready</span></span>
             <span id="lastChangeLabel"></span>
           </div>
-          <article id="doc" class="markdown-body studio-preview"></article>
+          <article id="doc" class="studio-preview"></article>
         </section>
       </div>
     </section>

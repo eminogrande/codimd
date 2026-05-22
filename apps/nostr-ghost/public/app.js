@@ -61,6 +61,8 @@ const state = {
 const dom = {
   signinButton: document.getElementById('signinButton'),
   studioSigninButton: document.getElementById('studioSigninButton'),
+  lockSigninButton: document.getElementById('lockSigninButton'),
+  studioLock: document.getElementById('studioLock'),
   identityLabel: document.getElementById('identityLabel'),
   identityBlogLink: document.getElementById('identityBlogLink'),
   relaysInput: document.getElementById('relaysInput'),
@@ -227,7 +229,11 @@ async function signIn () {
   dom.pubkeyInput.value = state.pubkey
   renderIdentity()
   await restoreVault({ silent: true })
-  location.hash = '#/studio'
+  if (location.hash === '#/studio') {
+    await route()
+  } else {
+    location.hash = '#/studio'
+  }
   toast('Passkey unlocked Nostr identity')
 }
 
@@ -481,8 +487,8 @@ function showOnly (view) {
   document.body.className = view === 'studio'
     ? 'studio-template'
     : view === 'post'
-      ? 'post-template is-head-stacked has-serif-title has-sans-body is-dropdown-loaded'
-      : 'home-template is-head-stacked has-serif-title has-sans-body is-dropdown-loaded'
+      ? 'post-template has-serif-title has-sans-body is-dropdown-loaded'
+      : 'home-template has-serif-title has-sans-body is-dropdown-loaded'
   dom.blogHero.classList.toggle('hidden', view !== 'blog')
   dom.blogView.classList.toggle('hidden', view !== 'blog')
   dom.postView.classList.toggle('hidden', view !== 'post')
@@ -507,6 +513,20 @@ function renderIdentity () {
   dom.identityBlogLink.textContent = /^[0-9a-f]{64}$/i.test(blogPubkey)
     ? 'Open Nostr blog'
     : 'Unlock passkey to open blog'
+}
+
+function hasUnlockedPasskey () {
+  return Boolean(state.privateKey && state.pubkey)
+}
+
+function renderStudioAccess () {
+  const locked = !hasUnlockedPasskey()
+  dom.studioView.classList.toggle('is-locked', locked)
+  dom.studioView.classList.toggle('is-unlocked', !locked)
+  const lockedButtons = [dom.newNoteButton, dom.publishButton, dom.backupButton, dom.restoreButton, dom.saveButton]
+  lockedButtons.forEach(button => {
+    if (button) button.disabled = locked
+  })
 }
 
 function renderPosts () {
@@ -802,6 +822,7 @@ async function encryptedAutosave () {
 }
 
 function renderEditor () {
+  if (!hasUnlockedPasskey()) return
   initCodimdEditor()
   const note = state.notes.find(candidate => candidate.id === state.selectedId)
   dom.titleInput.value = note ? note.title : ''
@@ -813,6 +834,10 @@ function renderEditor () {
 }
 
 function newNote () {
+  if (!hasUnlockedPasskey()) {
+    toast('Unlock passkey first')
+    return
+  }
   const note = normalizeNote({
     title: 'Untitled',
     content: '# Untitled\n\n',
@@ -862,6 +887,8 @@ async function route () {
   if (parts[0] === 'studio') {
     showOnly('studio')
     renderIdentity()
+    renderStudioAccess()
+    if (!hasUnlockedPasskey()) return
     renderNotes()
     renderEditor()
     return
@@ -887,11 +914,11 @@ async function route () {
 }
 
 function bind () {
-  initCodimdEditor()
   bindCodimdToolbar()
   dom.relaysInput.value = state.relays.join('\n')
   dom.pubkeyInput.value = state.blogPubkey
   renderIdentity()
+  renderStudioAccess()
 
   const bindClick = (element, action) => {
     if (!element) return
@@ -907,6 +934,7 @@ function bind () {
 
   bindClick(dom.signinButton, unlockPasskey)
   bindClick(dom.studioSigninButton, unlockPasskey)
+  bindClick(dom.lockSigninButton, unlockPasskey)
   dom.mobileMenuButton.addEventListener('click', () => {
     document.body.classList.toggle('gh-head-open')
   })
