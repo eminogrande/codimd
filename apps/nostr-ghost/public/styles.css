@@ -4,6 +4,12 @@
     --codimd-border: #e7e7e7;
     --codimd-text: #333;
     --codimd-muted: #777;
+    --visibility-private-bg: #fff1f2;
+    --visibility-private-border: #f2b7c0;
+    --visibility-private-text: #8a1f2d;
+    --visibility-public-bg: #edf8ef;
+    --visibility-public-border: #a8d8b3;
+    --visibility-public-text: #1f6d34;
 }
 
 .hidden {
@@ -175,6 +181,33 @@
 .nav-button:hover {
     color: #333;
     background: transparent;
+    text-decoration: none;
+}
+
+.nav-actions {
+    gap: 4px;
+}
+
+.nav-actions > li,
+#online-user-list {
+    display: flex;
+    align-items: center;
+    height: 50px;
+}
+
+.nav-actions .nav-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 34px;
+    margin: 8px 0;
+    padding: 6px 10px;
+}
+
+#online-user-list .ui-status {
+    display: inline-flex;
+    align-items: center;
+    height: 50px;
 }
 
 .btn-group {
@@ -227,6 +260,41 @@
 
 .label-primary {
     background-color: #337ab7;
+}
+
+.visibility-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 26px;
+    padding: 4px 9px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 16px;
+    white-space: nowrap;
+}
+
+.visibility-badge-private {
+    border-color: var(--visibility-private-border);
+    color: var(--visibility-private-text);
+    background: var(--visibility-private-bg);
+}
+
+.visibility-badge-public {
+    border-color: var(--visibility-public-border);
+    color: var(--visibility-public-text);
+    background: var(--visibility-public-bg);
+}
+
+.nav-actions .visibility-badge {
+    margin-right: 8px;
+}
+
+.ui-permission .visibility-badge {
+    margin-right: 8px;
+    vertical-align: middle;
 }
 
 .dropdown:hover .dropdown-menu,
@@ -328,6 +396,19 @@
     font-size: 11px;
 }
 
+.identity-blog-link {
+    display: inline-block;
+    margin-top: 8px;
+    color: #337ab7;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.identity-blog-link:hover {
+    color: #23527c;
+    text-decoration: none;
+}
+
 .nostr-note-panel label {
     display: block;
     margin-bottom: 6px;
@@ -363,6 +444,20 @@
     background: #fff;
     text-align: left;
     cursor: pointer;
+}
+
+.note-item.visibility-private {
+    border-color: var(--visibility-private-border);
+    background: var(--visibility-private-bg);
+}
+
+.note-item.visibility-public {
+    border-color: var(--visibility-public-border);
+    background: var(--visibility-public-bg);
+}
+
+.note-item.active {
+    box-shadow: inset 3px 0 0 #337ab7;
 }
 
 .note-item:hover {
@@ -431,17 +526,78 @@
     background: rgba(255, 255, 255, .95);
 }
 
+.codimd-root.visibility-private .ui-infobar {
+    border-bottom-color: var(--visibility-private-border);
+    color: var(--visibility-private-text);
+    background: var(--visibility-private-bg);
+}
+
+.codimd-root.visibility-public .ui-infobar {
+    border-bottom-color: var(--visibility-public-border);
+    color: var(--visibility-public-text);
+    background: var(--visibility-public-bg);
+}
+
+.codimd-root.visibility-private .document-title,
+.codimd-root.visibility-private #contentInput {
+    background: #fffafa;
+}
+
+.codimd-root.visibility-public .document-title,
+.codimd-root.visibility-public #contentInput {
+    background: #fbfffc;
+}
+
+.codimd-root.visibility-private .document-title {
+    border-bottom-color: var(--visibility-private-border);
+}
+
+.codimd-root.visibility-public .document-title {
+    border-bottom-color: var(--visibility-public-border);
+}
+
+.ui-status-lastchange[data-autosave="pending"] {
+    color: #8a6d3b;
+}
+
+.ui-status-lastchange[data-autosave="saving"] {
+    color: #337ab7;
+}
+
+.ui-status-lastchange[data-autosave="saved"] {
+    color: #2d6a3d;
+}
+
+.ui-status-lastchange[data-autosave="blocked"],
+.ui-status-lastchange[data-autosave="error"] {
+    color: #a94442;
+}
+
 .pull-right {
     float: right;
 }
 
 .ui-permission-label {
     max-width: 190px;
-    border: 0;
+    min-height: 26px;
+    border: 1px solid transparent;
+    border-radius: 4px;
     color: #777;
     background: transparent;
     font-size: 12px;
     font-weight: 700;
+}
+
+.visibility-input-private {
+    border-color: var(--visibility-private-border);
+    color: var(--visibility-private-text);
+    background: var(--visibility-private-bg);
+}
+
+.visibility-input-public {
+    border-color: var(--visibility-public-border);
+    color: var(--visibility-public-text);
+    background: var(--visibility-public-bg);
 }
 
 .markdown-body {

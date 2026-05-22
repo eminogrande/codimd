@@ -111,8 +111,10 @@
             </li>
           </ul>
           <ul class="nav navbar-nav navbar-right nav-actions">
+            <li><span id="visibilityNavBadge" class="visibility-badge visibility-badge-private"><i class="fa fa-lock"></i> Private encrypted</span></li>
             <li><button class="nav-button ui-new" id="newNoteButton" type="button"><i class="fa fa-plus"></i> New</button></li>
             <li><button class="nav-button ui-publish" id="publishButton" type="button"><i class="fa fa-share-square-o"></i> Publish</button></li>
+            <li><a class="nav-button ui-blog" id="blogLink" href="#/"><i class="fa fa-external-link"></i> Blog</a></li>
             <li class="dropdown">
               <button class="nav-button" type="button">Menu <i class="fa fa-caret-down"></i></button>
               <ul class="dropdown-menu list">
@@ -132,6 +134,7 @@
           <div class="identity">
             <small class="text-uppercase">Passkey identity</small>
             <p id="identityLabel">Not signed in</p>
+            <a id="identityBlogLink" class="identity-blog-link" href="#/">Open Nostr blog</a>
           </div>
           <label for="relaysInput">Relays</label>
           <textarea id="relaysInput" spellcheck="false"></textarea>
@@ -148,10 +151,11 @@
             <small>
               <span>
                 <span class="ui-no-lastchangeuser">&thinsp;<i class="fa fa-clock-o fa-fw"></i></span>
-                &nbsp;<span class="text-uppercase ui-status-lastchange">saved through nostr</span>
+                &nbsp;<span class="text-uppercase ui-status-lastchange" id="autosaveStatusLabel">encrypted autosave ready</span>
                 <span class="ui-lastchange text-uppercase" id="lastChangeLabel"></span>
               </span>
               <span class="ui-permission dropdown pull-right">
+                <span id="visibilityBadge" class="visibility-badge visibility-badge-private"><i class="fa fa-lock"></i> Private encrypted</span>
                 <select id="visibilityInput" class="ui-permission-label text-uppercase">
                   <option value="private">Private encrypted</option>
                   <option value="public">Public blog post</option>

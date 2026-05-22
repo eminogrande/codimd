@@ -39,6 +39,11 @@ secp.utils.hmacSha256Sync = function (key, ...messages) {
 const credentialStorageKey = 'nostrGhost.credentialId'
 const relayStorageKey = 'nostrGhost.relays'
 const pubkeyStorageKey = 'nostrGhost.pubkey'
+const autosaveDelayMs = 1800
+
+let autosaveTimer = null
+let autosaveInFlight = false
+let autosaveQueued = false
 
 const state = {
   privateKey: null,
@@ -53,15 +58,19 @@ const state = {
 const dom = {
   signinButton: document.getElementById('signinButton'),
   identityLabel: document.getElementById('identityLabel'),
+  identityBlogLink: document.getElementById('identityBlogLink'),
   relaysInput: document.getElementById('relaysInput'),
   restoreButton: document.getElementById('restoreButton'),
   backupButton: document.getElementById('backupButton'),
   newNoteButton: document.getElementById('newNoteButton'),
   saveButton: document.getElementById('saveButton'),
   publishButton: document.getElementById('publishButton'),
+  blogLink: document.getElementById('blogLink'),
   titleInput: document.getElementById('titleInput'),
   contentInput: document.getElementById('contentInput'),
   visibilityInput: document.getElementById('visibilityInput'),
+  visibilityBadge: document.getElementById('visibilityBadge'),
+  visibilityNavBadge: document.getElementById('visibilityNavBadge'),
   noteList: document.getElementById('noteList'),
   postGrid: document.getElementById('postGrid'),
   postView: document.getElementById('postView'),
@@ -75,6 +84,7 @@ const dom = {
   docPreview: document.getElementById('doc'),
   siteFooter: document.getElementById('siteFooter'),
   mobileMenuButton: document.getElementById('mobileMenuButton'),
+  autosaveStatusLabel: document.getElementById('autosaveStatusLabel'),
   lastChangeLabel: document.getElementById('lastChangeLabel'),
   editModeButton: document.getElementById('editModeButton'),
   bothModeButton: document.getElementById('bothModeButton'),
@@ -320,14 +330,14 @@ async function fetchLatestVault () {
   return batches.flat().sort((a, b) => b.created_at - a.created_at)[0] || null
 }
 
-async function backupVault () {
+async function backupVault (options = {}) {
   requireKey()
   const vault = createVault(state.pubkey, state.notes)
   const box = await encryptVaultPayload(vault, state.privateKey)
   const event = await signEvent(vaultEventTemplate(box))
   const published = await publishToRelays(event)
-  toast(`Encrypted backup published to ${published.ok}/${published.total} relays`)
-  return event
+  if (!options.silent) toast(`Encrypted backup published to ${published.ok}/${published.total} relays`)
+  return { event, published }
 }
 
 async function restoreVault (options = {}) {
@@ -371,11 +381,14 @@ function upsertCurrentNote () {
 }
 
 async function saveEncrypted () {
+  clearTimeout(autosaveTimer)
   upsertCurrentNote()
-  await backupVault()
+  const { published } = await backupVault()
+  setAutosaveStatus(`encrypted backup saved to ${published.ok}/${published.total} relays`, published.ok ? 'saved' : 'error')
 }
 
 async function publishCurrent () {
+  clearTimeout(autosaveTimer)
   const note = {
     ...upsertCurrentNote(),
     visibility: 'public',
@@ -383,9 +396,12 @@ async function publishCurrent () {
   }
   state.notes = state.notes.map(candidate => candidate.id === note.id ? note : candidate)
   dom.visibilityInput.value = 'public'
+  renderVisibilityState()
+  renderNotes()
   const article = await signEvent(articleEventTemplate(note))
   const published = await publishToRelays(article)
-  await backupVault()
+  await backupVault({ silent: true })
+  setAutosaveStatus('public post published, encrypted vault backed up', published.ok ? 'saved' : 'error')
   toast(`Public post published to ${published.ok}/${published.total} relays`)
 }
 
@@ -446,6 +462,13 @@ function showOnly (view) {
 function renderIdentity () {
   dom.identityLabel.textContent = state.pubkey || 'Not signed in'
   dom.signinButton.textContent = state.pubkey ? 'Unlocked' : 'Passkey'
+  const blogPubkey = state.pubkey || state.blogPubkey
+  const blogHref = /^[0-9a-f]{64}$/i.test(blogPubkey) ? '#/blog/' + blogPubkey : '#/'
+  dom.blogLink.href = blogHref
+  dom.identityBlogLink.href = blogHref
+  dom.identityBlogLink.textContent = /^[0-9a-f]{64}$/i.test(blogPubkey)
+    ? 'Open Nostr blog'
+    : 'Unlock passkey to open blog'
 }
 
 function renderPosts () {
@@ -492,15 +515,107 @@ function renderPost (slug) {
 
 function renderNotes () {
   dom.noteList.innerHTML = state.notes.map(note => `
-    <button class="note-item" data-note-id="${note.id}" type="button">
+    <button class="note-item visibility-${note.visibility}${note.id === state.selectedId ? ' active' : ''}" data-note-id="${note.id}" type="button">
       <strong>${escapeHtml(note.title)}</strong>
-      <span>${note.visibility} &middot; ${formatDate(note.updatedAt)}</span>
+      <span>${visibilityLabel(note.visibility)} &middot; ${formatDate(note.updatedAt)}</span>
     </button>
   `).join('')
 }
 
 function updatePreview () {
   dom.docPreview.innerHTML = markdownToHtml(dom.contentInput.value)
+  renderVisibilityState()
+}
+
+function currentVisibility () {
+  return dom.visibilityInput.value === 'public' ? 'public' : 'private'
+}
+
+function visibilityLabel (visibility) {
+  return visibility === 'public' ? 'Public draft' : 'Private encrypted'
+}
+
+function visibilityIcon (visibility) {
+  return visibility === 'public' ? 'fa-globe' : 'fa-lock'
+}
+
+function renderVisibilityBadge (element, visibility) {
+  element.className = `visibility-badge visibility-badge-${visibility}`
+  element.innerHTML = `<i class="fa ${visibilityIcon(visibility)}"></i> ${visibilityLabel(visibility)}`
+}
+
+function renderVisibilityState () {
+  const visibility = currentVisibility()
+  dom.studioView.classList.toggle('visibility-private', visibility === 'private')
+  dom.studioView.classList.toggle('visibility-public', visibility === 'public')
+  dom.visibilityInput.classList.toggle('visibility-input-private', visibility === 'private')
+  dom.visibilityInput.classList.toggle('visibility-input-public', visibility === 'public')
+  renderVisibilityBadge(dom.visibilityBadge, visibility)
+  renderVisibilityBadge(dom.visibilityNavBadge, visibility)
+}
+
+function setAutosaveStatus (message, mode = 'idle') {
+  dom.autosaveStatusLabel.textContent = message
+  dom.autosaveStatusLabel.dataset.autosave = mode
+}
+
+function autosaveLabel () {
+  return currentVisibility() === 'public'
+    ? 'encrypted draft autosaved, not published'
+    : 'encrypted autosaved'
+}
+
+function handleEditorChange () {
+  updatePreview()
+  upsertCurrentNote()
+  scheduleEncryptedAutosave()
+}
+
+function scheduleEncryptedAutosave () {
+  if (!state.selectedId) return
+  if (!state.privateKey || !state.pubkey) {
+    clearTimeout(autosaveTimer)
+    setAutosaveStatus('unlock passkey to enable encrypted autosave', 'blocked')
+    return
+  }
+
+  clearTimeout(autosaveTimer)
+  setAutosaveStatus(currentVisibility() === 'public'
+    ? 'encrypted draft autosave pending'
+    : 'encrypted autosave pending',
+  'pending')
+  autosaveTimer = setTimeout(() => {
+    encryptedAutosave().catch(error => {
+      setAutosaveStatus('encrypted autosave failed', 'error')
+      toast(error.message || String(error))
+    })
+  }, autosaveDelayMs)
+}
+
+async function encryptedAutosave () {
+  clearTimeout(autosaveTimer)
+  if (autosaveInFlight) {
+    autosaveQueued = true
+    return
+  }
+  if (!state.privateKey || !state.pubkey) {
+    setAutosaveStatus('unlock passkey to enable encrypted autosave', 'blocked')
+    return
+  }
+
+  autosaveInFlight = true
+  setAutosaveStatus('encrypting autosave to nostr', 'saving')
+  try {
+    const { published } = await backupVault({ silent: true })
+    const mode = published.ok ? 'saved' : 'error'
+    setAutosaveStatus(`${autosaveLabel()} to ${published.ok}/${published.total} relays`, mode)
+  } finally {
+    autosaveInFlight = false
+    if (autosaveQueued) {
+      autosaveQueued = false
+      scheduleEncryptedAutosave()
+    }
+  }
 }
 
 function renderEditor () {
@@ -522,6 +637,7 @@ function newNote () {
   state.selectedId = note.id
   renderNotes()
   renderEditor()
+  scheduleEncryptedAutosave()
 }
 
 function escapeHtml (value) {
@@ -615,8 +731,9 @@ function bind () {
     state.selectedId = button.dataset.noteId
     renderEditor()
   })
-  dom.titleInput.addEventListener('input', updatePreview)
-  dom.contentInput.addEventListener('input', updatePreview)
+  dom.titleInput.addEventListener('input', handleEditorChange)
+  dom.contentInput.addEventListener('input', handleEditorChange)
+  dom.visibilityInput.addEventListener('change', handleEditorChange)
   dom.editModeButton.addEventListener('click', () => setEditorMode('edit'))
   dom.bothModeButton.addEventListener('click', () => setEditorMode('both'))
   dom.viewModeButton.addEventListener('click', () => setEditorMode('view'))
