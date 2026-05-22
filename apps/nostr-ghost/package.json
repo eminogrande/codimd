@@ -1,0 +1,5 @@
+{
+  "name": "nostr-ghost-cloudflare",
+  "private": true,
+  "type": "module"
+}

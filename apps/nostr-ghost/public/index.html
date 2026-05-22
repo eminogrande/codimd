@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Nostr Ghost</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <header class="site-shell">
+    <a class="brand" href="#/">Nostr Ghost</a>
+    <nav class="nav">
+      <a href="#/" data-nav="blog">Blog</a>
+      <a href="#/studio" data-nav="studio">Private studio</a>
+    </nav>
+    <button class="button button-dark" id="signinButton" type="button">Passkey</button>
+  </header>
+
+  <main>
+    <section class="hero" id="blogHero">
+      <div class="hero-inner">
+        <p class="eyebrow">Public notes from Nostr</p>
+        <h1 id="blogTitle">Ghost-style publishing, Nostr storage.</h1>
+        <p id="blogSubtitle">Open a public key, read long-form posts, or sign in to publish from an encrypted private vault.</p>
+        <form class="pubkey-form" id="pubkeyForm">
+          <input id="pubkeyInput" name="pubkey" autocomplete="off" spellcheck="false" placeholder="Nostr public key hex">
+          <button class="button" type="submit">Open blog</button>
+        </form>
+      </div>
+    </section>
+
+    <section class="blog-view" id="blogView">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Latest</p>
+          <h2>Posts</h2>
+        </div>
+        <button class="button button-light" id="refreshPublicButton" type="button">Refresh</button>
+      </div>
+      <div class="post-grid" id="postGrid"></div>
+    </section>
+
+    <article class="post-view hidden" id="postView">
+      <a class="back-link" href="#/">Back to posts</a>
+      <p class="eyebrow" id="postDate"></p>
+      <h1 id="postTitle"></h1>
+      <div class="post-content" id="postContent"></div>
+    </article>
+
+    <section class="studio hidden" id="studioView">
+      <aside class="sidebar">
+        <div class="identity">
+          <p class="eyebrow">Identity</p>
+          <p id="identityLabel">Not signed in</p>
+        </div>
+        <div class="relay-box">
+          <label for="relaysInput">Relays</label>
+          <textarea id="relaysInput" spellcheck="false"></textarea>
+        </div>
+        <div class="sidebar-actions">
+          <button class="button button-light" id="restoreButton" type="button">Restore</button>
+          <button class="button button-light" id="backupButton" type="button">Backup</button>
+        </div>
+        <button class="button" id="newNoteButton" type="button">New note</button>
+        <div class="note-list" id="noteList"></div>
+      </aside>
+
+      <section class="editor">
+        <div class="editor-toolbar">
+          <select id="visibilityInput" aria-label="Visibility">
+            <option value="private">Private encrypted</option>
+            <option value="public">Public blog post</option>
+          </select>
+          <button class="button button-light" id="saveButton" type="button">Save encrypted</button>
+          <button class="button button-dark" id="publishButton" type="button">Publish public</button>
+        </div>
+        <input id="titleInput" class="title-input" placeholder="Untitled note">
+        <textarea id="contentInput" class="content-input" placeholder="Write markdown..."></textarea>
+      </section>
+    </section>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
