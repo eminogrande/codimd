@@ -48,7 +48,7 @@ const autosaveDelayMs = 1800
 let autosaveTimer = null
 let autosaveInFlight = false
 let autosaveQueued = false
-let codimdEditor = null
+let markdownEditor = null
 let editorHydrating = false
 let markdownRenderer = null
 
@@ -743,11 +743,11 @@ function updateEditorStatus () {
   let column = 1
   let selection = ''
 
-  if (codimdEditor) {
-    const cursor = codimdEditor.getCursor()
+  if (markdownEditor) {
+    const cursor = markdownEditor.getCursor()
     line = cursor.line + 1
     column = cursor.ch + 1
-    const selected = codimdEditor.getSelection()
+    const selected = markdownEditor.getSelection()
     selection = selected ? ' - ' + selected.length + ' selected' : ''
   } else if (dom.contentInput) {
     const prefix = dom.contentInput.value.slice(0, dom.contentInput.selectionStart || 0)
@@ -761,9 +761,9 @@ function updateEditorStatus () {
   dom.lengthStatus.textContent = `Length ${value.length}`
 }
 
-function initCodimdEditor () {
-  if (codimdEditor || typeof window.CodeMirror !== 'function') return
-  codimdEditor = window.CodeMirror.fromTextArea(dom.contentInput, {
+function initMarkdownEditor () {
+  if (markdownEditor || typeof window.CodeMirror !== 'function') return
+  markdownEditor = window.CodeMirror.fromTextArea(dom.contentInput, {
     mode: 'gfm',
     theme: 'default',
     lineNumbers: true,
@@ -779,24 +779,24 @@ function initCodimdEditor () {
       Enter: 'newlineAndIndentContinueMarkdownList'
     }
   })
-  codimdEditor.setSize('100%', '100%')
-  codimdEditor.on('change', () => {
+  markdownEditor.setSize('100%', '100%')
+  markdownEditor.on('change', () => {
     if (!editorHydrating) handleEditorChange()
     updateEditorStatus()
   })
-  codimdEditor.on('cursorActivity', updateEditorStatus)
+  markdownEditor.on('cursorActivity', updateEditorStatus)
   updateEditorStatus()
 }
 
 function editorValue () {
-  return codimdEditor ? codimdEditor.getValue() : dom.contentInput.value
+  return markdownEditor ? markdownEditor.getValue() : dom.contentInput.value
 }
 
 function setEditorValue (value) {
   editorHydrating = true
-  if (codimdEditor) {
-    codimdEditor.setValue(value)
-    codimdEditor.refresh()
+  if (markdownEditor) {
+    markdownEditor.setValue(value)
+    markdownEditor.refresh()
   } else {
     dom.contentInput.value = value
   }
@@ -814,10 +814,10 @@ function noteTitle (content, fallback) {
 }
 
 function wrapSelection (before, after = '', placeholder = 'text') {
-  if (codimdEditor) {
-    const selection = codimdEditor.getSelection() || placeholder
-    codimdEditor.replaceSelection(before + selection + after, 'around')
-    codimdEditor.focus()
+  if (markdownEditor) {
+    const selection = markdownEditor.getSelection() || placeholder
+    markdownEditor.replaceSelection(before + selection + after, 'around')
+    markdownEditor.focus()
     return
   }
   const start = dom.contentInput.selectionStart
@@ -829,10 +829,10 @@ function wrapSelection (before, after = '', placeholder = 'text') {
 }
 
 function prefixSelectionLines (prefix) {
-  if (codimdEditor) {
-    const selection = codimdEditor.getSelection() || 'text'
-    codimdEditor.replaceSelection(selection.split('\n').map(line => prefix + line).join('\n'))
-    codimdEditor.focus()
+  if (markdownEditor) {
+    const selection = markdownEditor.getSelection() || 'text'
+    markdownEditor.replaceSelection(selection.split('\n').map(line => prefix + line).join('\n'))
+    markdownEditor.focus()
     return
   }
   const start = dom.contentInput.selectionStart
@@ -844,9 +844,9 @@ function prefixSelectionLines (prefix) {
 }
 
 function insertMarkdown (markdown) {
-  if (codimdEditor) {
-    codimdEditor.replaceSelection(markdown)
-    codimdEditor.focus()
+  if (markdownEditor) {
+    markdownEditor.replaceSelection(markdown)
+    markdownEditor.focus()
     return
   }
   const start = dom.contentInput.selectionStart
@@ -856,7 +856,7 @@ function insertMarkdown (markdown) {
   handleEditorChange()
 }
 
-function bindCodimdToolbar () {
+function bindMarkdownToolbar () {
   const bindButton = (id, action) => {
     const button = document.getElementById(id)
     if (!button) return
@@ -979,14 +979,14 @@ async function encryptedAutosave () {
 
 function renderEditor () {
   if (!hasUnlockedPasskey()) return
-  initCodimdEditor()
+  initMarkdownEditor()
   const note = state.notes.find(candidate => candidate.id === state.selectedId)
   dom.titleInput.value = note ? note.title : ''
   setEditorValue(note ? note.content : '')
   dom.visibilityInput.value = note ? note.visibility : 'private'
   dom.lastChangeLabel.textContent = note ? formatDate(note.updatedAt) : ''
   updatePreview()
-  if (codimdEditor) codimdEditor.refresh()
+  if (markdownEditor) markdownEditor.refresh()
 }
 
 function newNote () {
@@ -1089,7 +1089,7 @@ async function route () {
 }
 
 function bind () {
-  bindCodimdToolbar()
+  bindMarkdownToolbar()
   dom.relaysInput.value = state.relays.join('\n')
   dom.pubkeyInput.value = state.blogPubkey
   renderIdentity()

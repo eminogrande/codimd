@@ -1,104 +1,47 @@
-CodiMD
-===
+# Nostr Hugo
 
-[![build status][build-image]][build-url]
-[![version][github-version-badge]][github-release-page]
-[![Gitter][gitter-image]][gitter-url]
-[![Matrix][matrix-image]][matrix-url]
-[![POEditor][poeditor-image]][poeditor-url]
+Nostr Hugo is a stateless browser app for private markdown writing and public Nostr publishing.
 
-CodiMD lets you collaborate in real-time with markdown.
-Built on [HackMD](https://hackmd.io) source code, CodiMD lets you host and control your team's content with speed and ease.
+There is no application server, no hosted database, and no local install for users. Cloudflare Pages serves static files. The browser derives Nostr key material from a passkey PRF, stores private notes as an encrypted Nostr vault, and publishes public posts as Nostr long-form events.
 
-![screenshot](https://raw.githubusercontent.com/hackmdio/codimd/develop/public/screenshot.png)
+## Features
 
-<!-- START doctoc generated TOC please keep comment here to allow auto update -->
-<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-# Table of Contents
+- Passkey PRF unlock for deterministic Nostr identity.
+- Private markdown studio locked until passkey unlock.
+- Encrypted autosave and backup to Nostr relays.
+- Public blog publishing with Nostr long-form events.
+- Public profile metadata for blog name, description, and avatar.
+- Personal blog routes at `/<nostr-pubkey-hex>`.
+- Single post routes at `/<nostr-pubkey-hex>/<post-slug>`.
+- Cloudflare Pages deployment with static files only.
 
-- [HackMD](#hackmd)
-- [CodiMD - The Open Source HackMD](#codimd---the-open-source-hackmd)
-- [Documentation](#documentation)
-  - [Deployment](#deployment)
-  - [Configuration](#configuration)
-  - [Upgrading and Migration](#upgrading-and-migration)
-  - [Developer](#developer)
-- [Contribution and Discussion](#contribution-and-discussion)
-- [Browser Support](#browser-support)
-- [License](#license)
+## Runtime Model
 
-<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+- Private workspace: encrypted replaceable event, `kind 30078`, `d=nostr-hugo-vault`.
+- Public posts: Nostr long-form content, `kind 30023`.
+- Public profile: Nostr metadata, `kind 0`.
+- Browser storage: passkey credential id and relay preferences only.
+- Source of truth: Nostr relays.
 
-## HackMD
+## Routes
 
-[HackMD](https://hackmd.io) helps developers write better documents and build active communities with open collaboration.
-HackMD is built with one promise - **You own and control all your content**:
-- You should be able to easily [download all your online content at once](https://hackmd.io/c/news/%2Fs%2Fr1cx3a3SE).
-- Your content formatting should be portable as well. (That's why we choose [markdown](https://hackmd.io/features#Typography).)
-- You should be able to control your content's presentation with HTML, [slide mode](https://hackmd.io/p/slide-example), or [book mode](https://hackmd.io/c/book-example/).
+- `/` landing page and public-key loader.
+- `/<nostr-pubkey-hex>` personal public blog.
+- `/<nostr-pubkey-hex>/<post-slug>` single public post.
+- `/studio` private markdown studio.
 
-## CodiMD - The Open Source HackMD
+## Local
 
-CodiMD is the free software version of [HackMD](https://hackmd.io), developed and open sourced by the HackMD team with reduced features (without book mode), you can use CodiMD for your community and own all your data. *(See the [origin of the name CodiMD](https://github.com/hackmdio/hackmd/issues/720).)* 
+```sh
+npm test
+```
 
-CodiMD is perfect for open communities, while HackMD emphasizes on permission and access controls for commercial use cases. 
+To serve the app locally, serve `apps/nostr-hugo/public` with SPA fallback to `index.html`.
 
-HackMD team is committed to keep CodiMD open source. All contributions are welcome!
+## Cloudflare Pages
 
-## Documentation
-You would find all documentation here: [CodiMD Documentation](https://hackmd.io/c/codimd-documentation)
+- Project root: `apps/nostr-hugo`
+- Build command: none
+- Build output directory: `public`
 
-### Deployment
-If you want to spin up an instance and start using immediately, see [Docker deployment](https://hackmd.io/c/codimd-documentation/%2Fs%2Fcodimd-docker-deployment).
-If you want to contribute to the project, start with [manual deployment](https://hackmd.io/c/codimd-documentation/%2Fs%2Fcodimd-manual-deployment).
-
-### Configuration
-CodiMD is highly customizable, learn about all configuration options of networking, security, performance, resources, privilege, privacy, image storage, and authentication in [CodiMD Configuration](https://hackmd.io/c/codimd-documentation/%2Fs%2Fcodimd-configuration).
-
-### Upgrading and Migration
-Upgrade CodiMD from previous version? See [this guide](https://hackmd.io/c/codimd-documentation/%2Fs%2Fcodimd-upgrade)<br>
-Migrating from Etherpad? Follow [this guide](https://hackmd.io/c/codimd-documentation/%2Fs%2Fcodimd-migration-etherpad)
-
-### Developer
-Join our contributor community! Start from deploying [CodiMD manually](https://hackmd.io/c/codimd-documentation/%2Fs%2Fcodimd-manual-deployment), [connecting to your own database](https://hackmd.io/c/codimd-documentation/%2Fs%2Fcodimd-db-connection), [learn about the project structure](https://hackmd.io/c/codimd-documentation/%2Fs%2Fcodimd-project-structure), to [build your changes](https://hackmd.io/c/codimd-documentation/%2Fs%2Fcodimd-webpack) with the help of webpack.
-
-## Contribution and Discussion
-All contributions are welcome! Even asking a question helps.
-
-| Project | Contribution Types | Contribution Venue |
-| ------- | ------------------ | ------------------ |
-|**CodiMD**|:couple: Community chat|[Gitter][gitter-url]|
-||:bug: Issues, bugs, and feature requests|[Issue tracker](https://github.com/hackmdio/codimd/issues)|
-||:books: Improve documentation|[Documentations](https://hackmd.io/c/codimd-documentation)|
-||:pencil: Translation|[POEditor][poeditor-url]|
-||:coffee: Donation|[Buy us coffee](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=KDGS4PREHX6QQ&lc=US&item_name=HackMD&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donate_LG%2egif%3aNonHosted)|
-|**HackMD**|:question: Issues related to [HackMD](https://hackmd.io/)|[Issue tracker](https://github.com/hackmdio/hackmd-io-issues/issues)|
-||:pencil2: Translation|[hackmd-locales](https://github.com/hackmdio/hackmd-locales/tree/master/locales)|
-
-## Browser Support
-
-CodiMD is a service that runs on Node.js, while users use the service through browsers. We support your users using the following browsers: 
-- <img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/chrome/chrome_48x48.png" alt="Chrome" width="24px" height="24px" /> Chrome >= 47, Chrome for Android >= 47
-- <img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/safari/safari_48x48.png" alt="Safari" width="24px" height="24px" /> Safari >= 9, iOS Safari >= 8.4
-- <img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/firefox/firefox_48x48.png" alt="Firefox" width="24px" height="24px" /> Firefox >= 44
-- <img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/edge/edge_48x48.png" alt="Edge" width="24px" height="24px" /> Edge >= 12
-- <img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/opera/opera_48x48.png" alt="Opera" width="24px" height="24px" /> Opera >= 34, Opera Mini not supported
-- Android Browser >= 4.4
-
-To stay up to date with your installation it's recommended to subscribe the [release feed][github-release-feed].
-
-## License
-
-**License under AGPL.**
-
-[gitter-image]: https://img.shields.io/badge/gitter-hackmdio/codimd-blue.svg
-[gitter-url]: https://gitter.im/hackmdio/hackmd
-[build-image]: https://github.com/hackmdio/codimd/actions/workflows/build.yml/badge.svg
-[build-url]: https://github.com/hackmdio/codimd/actions/workflows/build.yml
-[github-version-badge]: https://img.shields.io/github/release/hackmdio/codimd.svg
-[github-release-page]: https://github.com/hackmdio/codimd/releases
-[github-release-feed]: https://github.com/hackmdio/codimd/releases.atom
-[poeditor-image]: https://img.shields.io/badge/POEditor-translate-blue.svg
-[poeditor-url]: https://poeditor.com/join/project/q0nuPWyztp
-[matrix-image]: https://img.shields.io/matrix/hackmdio_hackmd:gitter.im?color=blue&logo=matrix
-[matrix-url]: https://matrix.to/#/#hackmdio_hackmd:gitter.im
+`apps/nostr-hugo/public/_redirects` keeps direct blog and post URLs working on Cloudflare Pages.

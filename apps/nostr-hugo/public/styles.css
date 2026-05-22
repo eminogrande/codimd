@@ -630,7 +630,7 @@ a {
     color: var(--color-accent);
 }
 
-.site-footer-inner > a {
+.site-footer-inner > :last-child {
     justify-self: end;
 }
 
@@ -1378,7 +1378,7 @@ a {
         padding: 24px 0;
     }
 
-    .site-footer-inner > a {
+    .site-footer-inner > :last-child {
         justify-self: start;
     }
 

@@ -1,6 +1,6 @@
-# Nostr Hugo Cloudflare App
+# Nostr Hugo
 
-This is the stateless browser-only runtime for the Nostr/Hugo direction.
+This is the stateless browser-only runtime for private markdown writing and public Nostr publishing.
 
 The important runtime rule is: there is no publishing server and no local or hosted database. Cloudflare Pages serves static files only. The browser derives the Nostr key from a passkey PRF, stores private notes as an encrypted replaceable Nostr vault, and publishes public blog posts as Nostr long-form events.
 
@@ -41,13 +41,7 @@ wrangler pages deploy public
 ## Local Smoke Test
 
 ```sh
-npm run test:nostr-hugo
+npm test
 ```
 
 The app intentionally stores only passkey credential id and relay preferences in browser storage. Notes are restored from Nostr after login.
-
-## Theme Sources
-
-- `public/styles.css` is a lightweight Hugo-style static blog theme built for this app.
-- `public/fork-awesome` is copied from `fork-awesome` and is covered by `FORK-AWESOME-LICENSES`.
-- The private editor keeps the familiar split markdown workflow without server-only collaboration or database features.

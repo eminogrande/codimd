@@ -5,8 +5,8 @@ export const VAULT_KIND = 30078
 export const ARTICLE_KIND = 30023
 export const PROFILE_KIND = 0
 export const VAULT_IDENTIFIER = 'nostr-hugo-vault'
-export const PRF_SALT_LABEL = 'codimd-nostr-passkey-prf-v1'
-export const PRIVATE_KEY_LABEL = 'codimd-nostr-private-key-v1'
+export const PRF_SALT_LABEL = 'nostr-hugo-passkey-prf-v1'
+export const PRIVATE_KEY_LABEL = 'nostr-hugo-private-key-v1'
 export const DEFAULT_RELAYS = [
   'wss://relay.damus.io',
   'wss://nos.lol',
@@ -102,11 +102,11 @@ export async function prfSalt () {
 }
 
 export async function deriveVaultKey (privateKeyHex) {
-  const salt = await sha256Bytes(utf8('codimd-nostr-vault-salt-v1'))
+  const salt = await sha256Bytes(utf8('nostr-hugo-vault-salt-v1'))
   return hkdfSha256(
     hexToBytes(privateKeyHex),
     salt,
-    utf8('codimd encrypted nostr vault v1'),
+    utf8('nostr hugo encrypted vault v1'),
     32
   )
 }
