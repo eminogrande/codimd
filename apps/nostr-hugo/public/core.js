@@ -3,7 +3,7 @@
 
 export const VAULT_KIND = 30078
 export const ARTICLE_KIND = 30023
-export const VAULT_IDENTIFIER = 'nostr-ghost-vault'
+export const VAULT_IDENTIFIER = 'nostr-hugo-vault'
 export const PRF_SALT_LABEL = 'codimd-nostr-passkey-prf-v1'
 export const PRIVATE_KEY_LABEL = 'codimd-nostr-private-key-v1'
 export const DEFAULT_RELAYS = [
@@ -233,7 +233,7 @@ export function normalizeNote (note) {
 export function createVault (pubkey, notes) {
   return {
     version: 1,
-    app: 'nostr-ghost',
+    app: 'nostr-hugo',
     exportedAt: new Date().toISOString(),
     pubkey,
     notes: notes.map(normalizeNote)
@@ -245,8 +245,8 @@ export function vaultEventTemplate (box) {
     kind: VAULT_KIND,
     tags: [
       ['d', VAULT_IDENTIFIER],
-      ['application', 'nostr-ghost'],
-      ['format', 'nostr-ghost-vault-v1'],
+      ['application', 'nostr-hugo'],
+      ['format', 'nostr-hugo-vault-v1'],
       ['encrypted', 'aes-256-gcm']
     ],
     content: JSON.stringify(box)
@@ -259,7 +259,7 @@ export function articleEventTemplate (note) {
     ['d', note.slug],
     ['title', note.title],
     ['published_at', String(Math.floor(new Date(note.publishedAt || note.updatedAt).getTime() / 1000))],
-    ['client', 'nostr-ghost-cloudflare']
+    ['client', 'nostr-hugo-cloudflare']
   ]
   const summary = plainSummary(note.content)
   if (summary) tags.push(['summary', summary])

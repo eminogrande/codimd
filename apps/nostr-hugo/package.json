@@ -1,5 +1,5 @@
 {
-  "name": "nostr-ghost-cloudflare",
+  "name": "nostr-hugo-cloudflare",
   "private": true,
   "type": "module"
 }

@@ -74,7 +74,7 @@ async function testEvents () {
 async function testNoBackendRuntime () {
   const app = await readFile(join(root, 'app.js'), 'utf8')
   const html = await readFile(join(root, 'index.html'), 'utf8')
-  const casper = await readFile(join(root, 'casper-screen.css'), 'utf8')
+  const styles = await readFile(join(root, 'styles.css'), 'utf8')
   const wrangler = await readFile(join(root, '..', 'wrangler.toml'), 'utf8')
   assert.equal(app.includes('/api/'), false)
   assert.equal(app.includes('sqlite'), false)
@@ -97,7 +97,9 @@ async function testNoBackendRuntime () {
   assert(html.includes('vendor/markdown-it/markdown-it.min.js'), true)
   assert.equal(html.includes('codimd-css/index.css'), false)
   assert.equal(html.includes('vendor/bootstrap'), false)
-  assert(html.includes('class="gh-head outer"'), true)
+  assert(html.includes('class="site-header"'), true)
+  assert(html.includes('class="blog-hero"'), true)
+  assert(html.includes('class="article-view"'), true)
   assert(html.includes('class="studio-root hidden is-locked"'), true)
   assert(html.includes('id="studioLock"'), true)
   assert(html.includes('id="lockSigninButton"'), true)
@@ -111,8 +113,9 @@ async function testNoBackendRuntime () {
   assert(html.includes('class="studio-statusbar"'), true)
   assert(app.includes('function hasUnlockedPasskey'), true)
   assert(app.includes('if (!hasUnlockedPasskey()) return'), true)
-  assert(casper.includes('.post-card'), true)
-  assert(casper.includes('.article-title'), true)
+  assert(styles.includes('.post-card'), true)
+  assert(styles.includes('.article-title'), true)
+  assert(styles.includes('.blog-loader'), true)
   assert(wrangler.includes('pages_build_output_dir = "public"'), true)
 }
 
@@ -140,7 +143,7 @@ async function testStaticServer () {
   const body = await response.text()
   await new Promise(resolve => server.close(resolve))
   assert.equal(response.status, 200)
-  assert(body.includes('Nostr Ghost'), true)
+  assert(body.includes('Nostr Hugo'), true)
   assert(body.includes('Private studio'), true)
   assert(body.includes('Nostr Studio'), true)
 }
@@ -151,4 +154,4 @@ await testEvents()
 await testNoBackendRuntime()
 await testStaticServer()
 
-console.log('nostr-ghost tests passed')
+console.log('nostr-hugo tests passed')

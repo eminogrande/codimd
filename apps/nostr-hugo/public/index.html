@@ -6,85 +6,67 @@
   <meta name="HandheldFriendly" content="True">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="color-scheme" content="light">
-  <title>Nostr Ghost</title>
-  <link rel="preload" as="style" href="./casper-screen.css">
-  <link rel="stylesheet" href="./casper-screen.css">
+  <title>Nostr Hugo</title>
   <link rel="stylesheet" href="./fork-awesome/css/fork-awesome.min.css">
   <link rel="stylesheet" href="./vendor/codemirror/lib/codemirror.css">
   <link rel="stylesheet" href="./styles.css">
 </head>
-<body class="home-template has-serif-title has-sans-body is-dropdown-loaded">
-<div class="viewport" id="ghostViewport">
-  <header id="gh-head" class="gh-head outer">
-    <div class="gh-head-inner inner">
-      <div class="gh-head-brand">
-        <a class="gh-head-logo no-image" href="#/">Nostr Ghost</a>
-        <button class="gh-burger" id="mobileMenuButton" aria-label="Main Menu"></button>
-      </div>
-
-      <nav class="gh-head-menu">
-        <ul class="nav">
-          <li><a href="#/">Home</a></li>
-          <li><a href="#/studio">Private studio</a></li>
-          <li><button class="gh-head-link nostr-passkey-link" id="signinButton" type="button">Passkey</button></li>
-        </ul>
+<body class="page-blog">
+<div class="viewport" id="appViewport">
+  <header class="site-header" id="siteHeader">
+    <div class="site-header-inner">
+      <a class="site-brand" href="#/">Nostr Hugo</a>
+      <button class="nav-toggle" id="mobileMenuButton" type="button" aria-label="Main Menu">
+        <i class="fa fa-bars"></i>
+      </button>
+      <nav class="site-nav">
+        <a href="#/">Home</a>
+        <a href="#/studio">Private studio</a>
+        <button class="link-button" id="signinButton" type="button">Passkey</button>
       </nav>
-
-      <div class="gh-head-actions">
-        <a class="gh-head-link" href="#/studio">Studio</a>
-      </div>
+      <a class="site-action" href="#/studio">Studio</a>
     </div>
   </header>
 
   <div class="site-content">
-    <section class="site-header-content outer" id="blogHero">
-      <div class="site-header-inner inner">
-        <h1 class="site-title">Nostr Ghost</h1>
-        <p class="site-description">Publishing that looks like Ghost, with private notes encrypted to Nostr.</p>
-      </div>
+    <section class="blog-hero" id="blogHero">
+      <p class="blog-kicker">Nostr-backed static publishing</p>
+      <h1>Nostr Hugo</h1>
+      <p>A lightweight markdown blog with Hugo-style reading, passkey identity, and no server database.</p>
     </section>
 
-    <main id="site-main" class="site-main outer" data-view="blog">
-      <div class="inner posts">
-        <form class="nostr-open-blog" id="pubkeyForm">
-          <input id="pubkeyInput" name="pubkey" autocomplete="off" spellcheck="false" placeholder="Nostr public key hex">
-          <button class="gh-head-button" type="submit">Open blog</button>
+    <main id="site-main" class="blog-main" data-view="blog">
+      <div class="blog-shell">
+        <form class="blog-loader" id="pubkeyForm">
+          <label for="pubkeyInput">Load public blog</label>
+          <div class="blog-loader-row">
+            <input id="pubkeyInput" name="pubkey" autocomplete="off" spellcheck="false" placeholder="Nostr public key hex">
+            <button class="site-button dark" type="submit">Open blog</button>
+          </div>
         </form>
-        <div class="nostr-feed-tools">
-          <p class="post-card-primary-tag">Latest public Nostr posts</p>
-          <button class="gh-head-button secondary" id="refreshPublicButton" type="button">Refresh</button>
+
+        <div class="feed-tools">
+          <p>Latest public Nostr posts</p>
+          <button class="site-button light" id="refreshPublicButton" type="button">Refresh</button>
         </div>
         <div class="post-feed" id="postGrid"></div>
       </div>
     </main>
 
-    <main id="postView" class="site-main hidden" data-view="post">
-      <article class="article post no-image">
-        <header class="article-header gh-canvas">
-          <div class="article-tag post-card-tags">
-            <span class="post-card-primary-tag">Nostr</span>
-          </div>
+    <main id="postView" class="article-main hidden" data-view="post">
+      <article class="article-view">
+        <a href="#/" class="article-back"><i class="fa fa-angle-left"></i> Back to latest</a>
+        <header class="article-header">
+          <p class="article-kicker">Nostr article</p>
           <h1 class="article-title" id="postTitle"></h1>
           <p class="article-excerpt" id="postExcerpt"></p>
-          <div class="article-byline">
-            <section class="article-byline-content">
-              <ul class="author-list instapaper_ignore">
-                <li class="author-list-item">
-                  <span class="author-avatar author-profile-image">N</span>
-                </li>
-              </ul>
-              <div class="article-byline-meta">
-                <h4 class="author-name">Nostr</h4>
-                <div class="byline-meta-content">
-                  <time class="byline-meta-date" id="postDate"></time>
-                  <span class="byline-reading-time"><span class="bull">&bull;</span> public relay post</span>
-                </div>
-              </div>
-            </section>
-            <a href="#/" class="gh-button gh-button-share">Back</a>
+          <div class="article-meta">
+            <span>Nostr</span>
+            <time id="postDate"></time>
+            <span id="postReadingTime">public relay post</span>
           </div>
         </header>
-        <section class="gh-content gh-canvas" id="postContent"></section>
+        <section class="article-content" id="postContent"></section>
       </article>
     </main>
 
@@ -199,14 +181,14 @@
     </section>
   </div>
 
-  <footer class="site-footer outer" id="siteFooter">
-    <div class="inner">
-      <section class="copyright"><a href="#/">Nostr Ghost</a> &copy; 2026</section>
-      <nav class="site-footer-nav">
+  <footer class="site-footer" id="siteFooter">
+    <div class="site-footer-inner">
+      <span>Nostr Hugo &copy; 2026</span>
+      <nav>
         <a href="#/">Latest</a>
         <a href="#/studio">Private studio</a>
       </nav>
-      <div class="gh-powered-by"><a href="https://github.com/eminogrande/codimd/tree/nostr-vault-cli" target="_blank" rel="noopener">Powered by Nostr</a></div>
+      <a href="https://github.com/eminogrande/codimd/tree/nostr-vault-cli" target="_blank" rel="noopener">Nostr backend</a>
     </div>
   </footer>
 </div>

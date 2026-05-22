@@ -36,9 +36,9 @@ secp.utils.hmacSha256Sync = function (key, ...messages) {
   return hmac(nobleSha256, new Uint8Array(key), concatBytes(...messages.map(message => new Uint8Array(message))))
 }
 
-const credentialStorageKey = 'nostrGhost.credentialId'
-const relayStorageKey = 'nostrGhost.relays'
-const pubkeyStorageKey = 'nostrGhost.pubkey'
+const credentialStorageKey = 'nostrHugo.credentialId'
+const relayStorageKey = 'nostrHugo.relays'
+const pubkeyStorageKey = 'nostrHugo.pubkey'
 const autosaveDelayMs = 1800
 
 let autosaveTimer = null
@@ -92,6 +92,7 @@ const dom = {
   postTitle: document.getElementById('postTitle'),
   postExcerpt: document.getElementById('postExcerpt'),
   postDate: document.getElementById('postDate'),
+  postReadingTime: document.getElementById('postReadingTime'),
   postContent: document.getElementById('postContent'),
   docPreview: document.getElementById('doc'),
   siteFooter: document.getElementById('siteFooter'),
@@ -152,11 +153,11 @@ async function createPasskeyCredential (challenge, salt) {
   const credential = await navigator.credentials.create({
     publicKey: {
       challenge,
-      rp: { name: 'Nostr Ghost' },
+      rp: { name: 'Nostr Hugo' },
       user: {
         id: userId,
-        name: 'nostr-ghost',
-        displayName: 'Nostr Ghost'
+        name: 'nostr-hugo',
+        displayName: 'Nostr Hugo'
       },
       pubKeyCredParams: [
         { type: 'public-key', alg: -7 },
@@ -263,7 +264,7 @@ function verifyEvent (event) {
 function queryRelay (relay, filter, timeout = 6000) {
   return new Promise(resolve => {
     const events = []
-    const subscription = 'nostr-ghost-' + Math.random().toString(16).slice(2)
+    const subscription = 'nostr-hugo-' + Math.random().toString(16).slice(2)
     let settled = false
     const ws = new WebSocket(relay)
     const timer = setTimeout(finish, timeout)
@@ -485,10 +486,10 @@ function fallbackMarkdownToHtml (markdown) {
 
 function showOnly (view) {
   document.body.className = view === 'studio'
-    ? 'studio-template'
+    ? 'page-studio'
     : view === 'post'
-      ? 'post-template has-serif-title has-sans-body is-dropdown-loaded'
-      : 'home-template has-serif-title has-sans-body is-dropdown-loaded'
+      ? 'page-post'
+      : 'page-blog'
   dom.blogHero.classList.toggle('hidden', view !== 'blog')
   dom.blogView.classList.toggle('hidden', view !== 'blog')
   dom.postView.classList.toggle('hidden', view !== 'post')
@@ -535,22 +536,16 @@ function renderPosts () {
     return
   }
   dom.postGrid.innerHTML = state.posts.map((post, index) => `
-    <article class="post-card no-image${index === 0 ? ' post-card-large' : ''}">
-      <div class="post-card-content">
-        <a class="post-card-content-link" href="#/post/${state.blogPubkey}/${encodeURIComponent(post.slug)}">
-          <header class="post-card-header">
-            <div class="post-card-tags">
-              <span class="post-card-primary-tag">Nostr</span>
-            </div>
-            <h2 class="post-card-title">${escapeHtml(post.title)}</h2>
-          </header>
-          <div class="post-card-excerpt">${escapeHtml(post.summary)}</div>
-        </a>
-        <footer class="post-card-meta">
-          <time class="post-card-meta-date" datetime="${escapeHtml(post.createdAt.slice(0, 10))}">${formatDate(post.createdAt)}</time>
-          <span class="post-card-meta-length">${readingTime(post.content)}</span>
-        </footer>
-      </div>
+    <article class="post-card${index === 0 ? ' post-card-large' : ''}">
+      <a class="post-card-link" href="#/post/${state.blogPubkey}/${encodeURIComponent(post.slug)}">
+        <span class="post-card-kicker">Nostr article</span>
+        <h2 class="post-card-title">${escapeHtml(post.title)}</h2>
+        <p class="post-card-excerpt">${escapeHtml(post.summary)}</p>
+      </a>
+      <footer class="post-card-meta">
+        <time datetime="${escapeHtml(post.createdAt.slice(0, 10))}">${formatDate(post.createdAt)}</time>
+        <span>${readingTime(post.content)}</span>
+      </footer>
     </article>
   `).join('')
 }
@@ -561,6 +556,7 @@ function renderPost (slug) {
     dom.postTitle.textContent = 'Post not loaded'
     dom.postExcerpt.textContent = ''
     dom.postDate.textContent = ''
+    if (dom.postReadingTime) dom.postReadingTime.textContent = 'public relay post'
     dom.postContent.innerHTML = '<p>Refresh the blog and try again.</p>'
     return
   }
@@ -568,6 +564,7 @@ function renderPost (slug) {
   dom.postExcerpt.textContent = post.summary
   dom.postDate.textContent = formatDate(post.createdAt)
   dom.postDate.setAttribute('datetime', post.createdAt.slice(0, 10))
+  if (dom.postReadingTime) dom.postReadingTime.textContent = readingTime(post.content)
   dom.postContent.innerHTML = markdownToHtml(post.content)
 }
 
@@ -936,7 +933,7 @@ function bind () {
   bindClick(dom.studioSigninButton, unlockPasskey)
   bindClick(dom.lockSigninButton, unlockPasskey)
   dom.mobileMenuButton.addEventListener('click', () => {
-    document.body.classList.toggle('gh-head-open')
+    document.body.classList.toggle('nav-open')
   })
   bindClick(dom.restoreButton, () => {
     restoreVault().catch(error => toast(error.message || String(error)))

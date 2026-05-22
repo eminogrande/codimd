@@ -26,7 +26,7 @@
     "coverage": "nyc mocha --require intelli-espower-loader --exit --recursive ./test",
     "coverage:ci": "nyc mocha --no-color -R dot --require intelli-espower-loader --exit --recursive ./test",
     "test": "npm run-script lint && npm run-script jsonlint && npm run-script coverage",
-    "test:nostr-ghost": "node apps/nostr-ghost/test/run-tests.mjs",
+    "test:nostr-hugo": "node apps/nostr-hugo/test/run-tests.mjs",
     "test:ci": "npm run-script lint && npm run-script jsonlint && npm run-script coverage:ci",
     "heroku-postbuild": "npm run build && ./bin/heroku"
   },
@@ -238,7 +238,7 @@
     "ignore": [
       "/public/build",
       "/public/vendor",
-      "/apps/nostr-ghost/public/vendor",
+      "/apps/nostr-hugo/public/vendor",
       "/lib/ot",
       "webpack.*"
     ]
