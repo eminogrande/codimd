@@ -93,6 +93,7 @@
     display: grid;
     grid-template-columns: minmax(320px, 1fr) minmax(320px, 1fr);
     height: 100%;
+    align-items: stretch;
 }
 
 .codimd-root.mode-edit .ui-content,
@@ -105,21 +106,40 @@
     display: none;
 }
 
+.codimd-root.mode-view .ui-view-area {
+    grid-column: 1;
+}
+
 .nostr-note-panel,
 .document-title {
     display: none;
 }
 
 .ui-edit-area {
+    grid-column: 1;
+    grid-row: 1;
     display: flex;
     flex-direction: column;
     min-width: 0;
+    height: 100%;
 }
 
 .ui-view-area {
+    grid-column: 2;
+    grid-row: 1;
     min-width: 0;
     height: 100%;
     overflow: auto;
+}
+
+.ui-infobar {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    max-width: none;
+    margin: 0;
+    padding: 6px 14px;
+    border-bottom: 1px solid #ddd;
 }
 
 .ui-edit-area .CodeMirror {
