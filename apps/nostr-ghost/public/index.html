@@ -9,15 +9,8 @@
   <title>Nostr Ghost</title>
   <link rel="preload" as="style" href="./casper-screen.css">
   <link rel="stylesheet" href="./casper-screen.css">
-  <link rel="stylesheet" href="./vendor/bootstrap/css/bootstrap.min.css" media="not all" data-codimd-style>
   <link rel="stylesheet" href="./fork-awesome/css/fork-awesome.min.css">
-  <link rel="stylesheet" href="./codimd-css/font.css" media="not all" data-codimd-style>
-  <link rel="stylesheet" href="./codimd-css/site.css" media="not all" data-codimd-style>
-  <link rel="stylesheet" href="./codimd-css/index.css" media="not all" data-codimd-style>
-  <link rel="stylesheet" href="./codimd-css/extra.css" media="not all" data-codimd-style>
-  <link rel="stylesheet" href="./codimd-css/markdown.css" media="not all" data-codimd-style>
-  <link rel="stylesheet" href="./vendor/codemirror/lib/codemirror.css" media="not all" data-codimd-style>
-  <link rel="stylesheet" href="./vendor/codemirror/theme/one-dark.css" media="not all" data-codimd-style>
+  <link rel="stylesheet" href="./vendor/codemirror/lib/codemirror.css">
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body class="home-template is-head-stacked has-serif-title has-sans-body is-dropdown-loaded">
@@ -95,197 +88,104 @@
       </article>
     </main>
 
-    <section class="codimd-root hidden" id="studioView" data-view="studio">
-      <nav class="navbar navbar-default navbar-fixed-top unselectable hidden-print">
-        <div class="navbar-header">
-          <div class="pull-right codimd-navbar-spacer">
-            <div class="visible-xs">&nbsp;</div>
-            <div class="visible-sm">&nbsp;</div>
-            <div class="visible-md">&nbsp;</div>
-            <div class="visible-lg">&nbsp;</div>
-          </div>
-          <div class="nav-mobile nav-status visible-xs" id="short-online-user-list">
-            <a class="ui-short-status" data-toggle="dropdown">
-              <span class="label label-primary ui-status-online"><i class="fa fa-users"></i> <span class="ui-status-short-msg">1</span></span>
-            </a>
-            <ul class="dropdown-menu list" role="menu" aria-labelledby="menu"></ul>
-          </div>
-          <a class="navbar-brand pull-left" href="#/"><i class="fa fa-file-text"></i> CodiMD</a>
-          <div class="nav-mobile pull-right visible-xs">
-            <button class="btn btn-link ui-mode" id="mobileModeButton" type="button"><i class="fa fa-pencil"></i></button>
-          </div>
+    <section class="studio-root hidden" id="studioView" data-view="studio">
+      <header class="studio-topbar">
+        <a class="studio-brand" href="#/">
+          <i class="fa fa-key"></i>
+          <span>Nostr Studio</span>
+        </a>
+        <button class="studio-icon-button studio-mobile-mode" id="mobileModeButton" type="button" title="Switch mode">
+          <i class="fa fa-pencil"></i>
+        </button>
+        <div class="studio-mode-switch" aria-label="Editor mode">
+          <button class="studio-icon-button" id="editModeButton" type="button" title="Edit"><i class="fa fa-pencil"></i></button>
+          <button class="studio-icon-button active" id="bothModeButton" type="button" title="Split"><i class="fa fa-columns"></i></button>
+          <button class="studio-icon-button" id="viewModeButton" type="button" title="Preview"><i class="fa fa-eye"></i></button>
         </div>
-        <div class="collapse navbar-collapse">
-          <ul class="nav navbar-nav navbar-form navbar-left codimd-mode-nav">
-            <li>
-              <div class="btn-group" data-toggle="buttons">
-                <button class="btn btn-default ui-view" id="viewModeButton" type="button" title="View"><i class="fa fa-eye"></i></button>
-                <button class="btn btn-default ui-both active" id="bothModeButton" type="button" title="Both"><i class="fa fa-columns"></i></button>
-                <button class="btn btn-default ui-edit" id="editModeButton" type="button" title="Edit"><i class="fa fa-pencil"></i></button>
-              </div>
-            </li>
-            <li>
-              <div class="btn-group" data-toggle="buttons">
-                <button class="btn ui-night" id="nightModeButton" type="button" title="Night Theme"><i class="fa fa-moon-o"></i></button>
-              </div>
-            </li>
-            <li><button class="btn btn-link btn-file ui-help" type="button" title="Help"><i class="fa fa-question-circle"></i></button></li>
-            <li><span class="btn btn-link btn-file ui-upload-image" title="Upload Image"><i class="fa fa-camera"></i></span></li>
-          </ul>
-          <ul class="nav navbar-nav navbar-right">
-            <li id="online-user-list">
-              <a class="ui-status" data-toggle="dropdown">
-                <span class="label label-warning ui-status-connected" style="display: none;"><i class="fa fa-wifi"></i> CONNECTED</span>
-                <span class="label label-primary ui-status-online"><i class="fa fa-users"></i> <span class="ui-status-short-msg" id="onlineCountLabel">1</span> ONLINE</span>
-                <span class="label label-danger ui-status-offline" style="display: none;"><i class="fa fa-plug"></i> OFFLINE</span>
-              </a>
-              <ul class="dropdown-menu list" role="menu" aria-labelledby="menu">
-                <li><a><span class="ui-user-icon small"></span> <span id="onlineIdentityLabel">Local browser</span></a></li>
-              </ul>
-            </li>
-          </ul>
-          <ul class="nav navbar-nav navbar-right codimd-action-nav">
-            <li><a href="#/studio" class="ui-new" id="newNoteButton"><i class="fa fa-plus"></i> New</a></li>
-            <li><a href="#/studio" target="_blank" rel="noopener" class="ui-publish" id="publishButton"><i class="fa fa-share-square-o"></i> Publish</a></li>
-            <li class="dropdown">
-              <a data-toggle="dropdown" href="#">Menu <i class="fa fa-caret-down"></i></a>
-              <ul class="dropdown-menu list" role="menu" aria-labelledby="menu">
-                <li class="dropdown-header">Extra</li>
-                <li role="presentation"><a role="menuitem" tabindex="-1"><i class="fa fa-history fa-fw"></i> Revision</a></li>
-                <li role="presentation"><a role="menuitem" tabindex="-1"><i class="fa fa-tv fa-fw"></i> Slide Mode</a></li>
-                <li class="divider"></li>
-                <li class="dropdown-header">Nostr</li>
-                <li role="presentation"><a role="menuitem" tabindex="-1" id="studioSigninButton"><i class="fa fa-key fa-fw"></i> Unlock passkey</a></li>
-                <li role="presentation"><a role="menuitem" tabindex="-1" id="restoreButton"><i class="fa fa-cloud-download fa-fw"></i> Restore encrypted vault</a></li>
-                <li role="presentation"><a role="menuitem" tabindex="-1" id="backupButton"><i class="fa fa-cloud-upload fa-fw"></i> Backup encrypted vault</a></li>
-                <li role="presentation"><a role="menuitem" tabindex="-1" id="saveButton"><i class="fa fa-floppy-o fa-fw"></i> Save encrypted</a></li>
-                <li role="presentation"><a role="menuitem" tabindex="-1" id="blogLink" href="#/"><i class="fa fa-external-link fa-fw"></i> Open Ghost blog</a></li>
-                <li class="divider"></li>
-                <li class="dropdown-header">Download</li>
-                <li role="presentation"><a role="menuitem" tabindex="-1"><i class="fa fa-file-text fa-fw"></i> Markdown</a></li>
-                <li role="presentation"><a role="menuitem" tabindex="-1"><i class="fa fa-file-code-o fa-fw"></i> HTML</a></li>
-              </ul>
-            </li>
-          </ul>
+        <button class="studio-icon-button" id="nightModeButton" type="button" title="Focus mode"><i class="fa fa-moon-o"></i></button>
+        <div class="studio-topbar-spacer"></div>
+        <div class="studio-online" id="online-user-list">
+          <i class="fa fa-users"></i>
+          <strong id="onlineCountLabel">1</strong>
+          <span>online</span>
+          <span id="onlineIdentityLabel">Local browser</span>
         </div>
-      </nav>
+        <a class="studio-button secondary" id="blogLink" href="#/"><i class="fa fa-external-link"></i> Blog</a>
+        <button class="studio-button secondary" id="newNoteButton" type="button"><i class="fa fa-plus"></i> New</button>
+        <button class="studio-button" id="publishButton" type="button"><i class="fa fa-share-square-o"></i> Publish</button>
+        <button class="studio-button primary" id="studioSigninButton" type="button"><i class="fa fa-key"></i> Unlock passkey</button>
+      </header>
 
-      <div class="ui-spinner unselectable hidden-print"></div>
-      <div class="row ui-content">
-        <aside class="nostr-note-panel">
-          <div class="identity">
-            <small class="text-uppercase">Passkey identity</small>
-            <p id="identityLabel">Not signed in</p>
-            <a id="identityBlogLink" class="identity-blog-link" href="#/">Open Nostr blog</a>
-          </div>
-          <label for="relaysInput">Relays</label>
-          <textarea id="relaysInput" spellcheck="false"></textarea>
-          <div class="note-list" id="noteList"></div>
+      <div class="studio-workbench">
+        <aside class="studio-sidebar">
+          <section class="studio-panel">
+            <div class="studio-panel-header">Identity</div>
+            <p class="studio-identity" id="identityLabel">Not signed in</p>
+            <a id="identityBlogLink" class="studio-link" href="#/">Open Nostr blog</a>
+          </section>
+          <section class="studio-panel">
+            <div class="studio-panel-header">Nostr relays</div>
+            <textarea id="relaysInput" class="studio-relays" spellcheck="false"></textarea>
+            <div class="studio-button-row">
+              <button class="studio-button secondary" id="restoreButton" type="button"><i class="fa fa-cloud-download"></i> Restore</button>
+              <button class="studio-button secondary" id="backupButton" type="button"><i class="fa fa-cloud-upload"></i> Backup</button>
+              <button class="studio-button secondary" id="saveButton" type="button"><i class="fa fa-floppy-o"></i> Save</button>
+            </div>
+          </section>
+          <section class="studio-panel studio-notes-panel">
+            <div class="studio-panel-header">Notes</div>
+            <div class="note-list" id="noteList"></div>
+          </section>
         </aside>
 
-        <div class="ui-edit-area unselectable">
-          <div class="toolbar codimd-editor-toolbar">
-            <div class="btn-toolbar" role="toolbar" aria-label="Editor toolbar">
-              <div class="btn-group" role="group">
-                <button id="makeBold" class="btn btn-sm btn-dark text-uppercase" type="button" title="Bold"><i class="fa fa-bold fa-fw"></i></button>
-                <button id="makeItalic" class="btn btn-sm btn-dark text-uppercase" type="button" title="Italic"><i class="fa fa-italic fa-fw"></i></button>
-                <button id="makeStrike" class="btn btn-sm btn-dark text-uppercase" type="button" title="Strikethrough"><i class="fa fa-strikethrough fa-fw"></i></button>
-                <button id="makeHeader" class="btn btn-sm btn-dark text-uppercase" type="button" title="Heading"><i class="fa fa-h1 fa-fw">H</i></button>
-                <button id="makeCode" class="btn btn-sm btn-dark text-uppercase" type="button" title="Code"><i class="fa fa-code fa-fw"></i></button>
-                <button id="makeQuote" class="btn btn-sm btn-dark text-uppercase" type="button" title="Quote"><i class="fa fa-quote-right fa-fw"></i></button>
-                <button id="makeGenericList" class="btn btn-sm btn-dark text-uppercase" type="button" title="List"><i class="fa fa-list fa-fw"></i></button>
-                <button id="makeOrderedList" class="btn btn-sm btn-dark text-uppercase" type="button" title="Numbered List"><i class="fa fa-list-ol fa-fw"></i></button>
-                <button id="makeCheckList" class="btn btn-sm btn-dark text-uppercase" type="button" title="Check List"><i class="fa fa-check-square fa-fw"></i></button>
-                <button id="makeLink" class="btn btn-sm btn-dark text-uppercase" type="button" title="Link"><i class="fa fa-link fa-fw"></i></button>
-                <button id="makeImage" class="btn btn-sm btn-dark text-uppercase" type="button" title="Image"><i class="fa fa-image fa-fw"></i></button>
-                <button id="makeTable" class="btn btn-sm btn-dark text-uppercase" type="button" title="Table"><i class="fa fa-table fa-fw"></i></button>
-                <button id="makeLine" class="btn btn-sm btn-dark text-uppercase" type="button" title="Line"><i class="fa fa-minus fa-fw"></i></button>
-                <button id="makeComment" class="btn btn-sm btn-dark text-uppercase" type="button" title="Comment"><i class="fa fa-comment fa-fw"></i></button>
-              </div>
+        <main class="studio-editor-shell">
+          <div class="studio-document-bar">
+            <input id="titleInput" class="document-title" placeholder="Untitled note">
+            <div class="studio-visibility">
+              <span id="visibilityBadge" class="visibility-badge visibility-badge-private"><i class="fa fa-lock"></i> Private encrypted</span>
+              <select id="visibilityInput">
+                <option value="private">Private encrypted</option>
+                <option value="public">Public blog post</option>
+              </select>
             </div>
           </div>
-          <input id="titleInput" class="document-title" placeholder="Untitled note">
-          <textarea id="contentInput" spellcheck="true" placeholder="Write markdown..."></textarea>
-        </div>
+          <div class="studio-toolbar" role="toolbar" aria-label="Markdown toolbar">
+            <button id="makeBold" class="studio-tool" type="button" title="Bold"><i class="fa fa-bold"></i></button>
+            <button id="makeItalic" class="studio-tool" type="button" title="Italic"><i class="fa fa-italic"></i></button>
+            <button id="makeStrike" class="studio-tool" type="button" title="Strikethrough"><i class="fa fa-strikethrough"></i></button>
+            <button id="makeHeader" class="studio-tool" type="button" title="Heading">H</button>
+            <button id="makeCode" class="studio-tool" type="button" title="Code"><i class="fa fa-code"></i></button>
+            <button id="makeQuote" class="studio-tool" type="button" title="Quote"><i class="fa fa-quote-right"></i></button>
+            <button id="makeGenericList" class="studio-tool" type="button" title="List"><i class="fa fa-list"></i></button>
+            <button id="makeOrderedList" class="studio-tool" type="button" title="Numbered list"><i class="fa fa-list-ol"></i></button>
+            <button id="makeCheckList" class="studio-tool" type="button" title="Checklist"><i class="fa fa-check-square"></i></button>
+            <button id="makeLink" class="studio-tool" type="button" title="Link"><i class="fa fa-link"></i></button>
+            <button id="makeImage" class="studio-tool" type="button" title="Image"><i class="fa fa-image"></i></button>
+            <button id="makeTable" class="studio-tool" type="button" title="Table"><i class="fa fa-table"></i></button>
+            <button id="makeLine" class="studio-tool" type="button" title="Horizontal rule"><i class="fa fa-minus"></i></button>
+            <button id="makeComment" class="studio-tool" type="button" title="Comment"><i class="fa fa-comment"></i></button>
+          </div>
+          <div class="studio-editor-frame">
+            <textarea id="contentInput" spellcheck="true" placeholder="Write markdown..."></textarea>
+          </div>
+          <div class="studio-statusbar">
+            <span id="cursorStatus">Line 1, Column 1</span>
+            <span id="selectionStatus"></span>
+            <span id="fileStatus"> - 1 Lines</span>
+            <span class="studio-statusbar-spacer"></span>
+            <span>Spaces: 4</span>
+            <span>Sublime</span>
+            <span id="lengthStatus">Length 0</span>
+          </div>
+        </main>
 
-        <div class="ui-view-area">
-          <div class="ui-infobar container-fluid unselectable hidden-print">
-            <small>
-              <span>
-                <span class="ui-no-lastchangeuser">&thinsp;<i class="fa fa-clock-o fa-fw"></i></span>
-                &nbsp;<span class="text-uppercase ui-status-lastchange" id="autosaveStatusLabel">encrypted autosave ready</span>
-                <span class="ui-lastchange text-uppercase" id="lastChangeLabel"></span>
-              </span>
-              <span class="ui-permission dropdown pull-right">
-                <span id="visibilityBadge" class="visibility-badge visibility-badge-private"><i class="fa fa-lock"></i> Private encrypted</span>
-                <select id="visibilityInput" class="ui-permission-label text-uppercase">
-                  <option value="private">Private encrypted</option>
-                  <option value="public">Public blog post</option>
-                </select>
-              </span>
-            </small>
+        <section class="studio-preview-shell">
+          <div class="studio-preview-status">
+            <span><i class="fa fa-clock-o"></i> <span id="autosaveStatusLabel">encrypted autosave ready</span></span>
+            <span id="lastChangeLabel"></span>
           </div>
-          <div id="doc" class="markdown-body container-fluid"></div>
-          <div class="ui-toc dropup unselectable hidden-print">
-            <div class="pull-right dropdown">
-              <a id="tocLabel" class="ui-toc-label btn btn-default" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false" title="Table of content">
-                <i class="fa fa-bars"></i>
-              </a>
-              <ul id="ui-toc" class="ui-toc-dropdown dropdown-menu" aria-labelledby="tocLabel">
-                <li><a>YAML metadata</a></li>
-                <li><a>ToC</a></li>
-                <li><a>Emoji</a></li>
-                <li><a>ToDo List</a></li>
-                <li><a>Code Block</a></li>
-                <li><a>Externals</a></li>
-                <li><a>MathJax</a></li>
-                <li class="active"><a>UML Diagrams</a></li>
-                <li><a>&ensp;Sequence Diagrams</a></li>
-                <li><a>&ensp;Flow Charts</a></li>
-                <li><a>&ensp;Graphviz</a></li>
-                <li><a>&ensp;Mermaid</a></li>
-                <li><a>Abc</a></li>
-                <li><a>PlantUML</a></li>
-                <li><a>Vega-Lite</a></li>
-                <li class="divider"></li>
-                <li><a>Expand all</a></li>
-                <li><a href="#/studio" id="tocBackToTop">Back to top</a></li>
-                <li><a href="#/studio" id="tocGoToBottom">Go to bottom</a></li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="status-bar codimd-statusbar">
-        <div class="status-info">
-          <div class="status-cursor">
-            <span class="status-line-column" id="cursorStatus">Line 1, Column 1</span>
-            <span class="status-selection" id="selectionStatus"></span>
-          </div>
-          <div class="status-file" id="fileStatus"> - 1 Lines</div>
-        </div>
-        <div class="status-indicators">
-          <div class="status-length" id="lengthStatus">Length 0</div>
-          <div class="status-preferences dropup toggle-dropdown pull-right">
-            <a id="preferencesLabel" class="ui-preferences-label text-uppercase" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" title="Click to change preferences"><i class="fa fa-wrench fa-fw"></i></a>
-          </div>
-          <div class="status-keymap dropup pull-right">
-            <a id="keymapLabel" class="ui-keymap-label text-uppercase" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" title="Click to change keymap">Sublime</a>
-          </div>
-          <div class="status-indent">
-            <div class="indent-type" title="Click to switch indentation type">Spaces:</div>
-            <div class="indent-width-label" title="Click to change indentation size">4</div>
-          </div>
-          <div class="status-theme dropup">
-            <a id="themeLabel" class="ui-theme-label text-uppercase" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" title="Select theme"><i class="fa fa-paint-brush fa-fw"></i></a>
-          </div>
-          <div class="status-spellcheck dropup pull-right">
-            <a class="ui-spellcheck-toggle" title="Toggle spellcheck" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class="fa fa-check fa-fw"></i></a>
-          </div>
-          <div class="status-linter">
-            <a class="ui-linter-toggle" title="Toggle linter"><i class="fa fa-lightbulb-o fa-fw"></i></a>
-          </div>
-        </div>
+          <article id="doc" class="markdown-body studio-preview"></article>
+        </section>
       </div>
     </section>
   </div>
@@ -304,8 +204,6 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="./vendor/jquery/jquery.min.js"></script>
-<script src="./vendor/bootstrap/js/bootstrap.min.js"></script>
 <script src="./vendor/codemirror/codemirror.min.js"></script>
 <script src="./vendor/codemirror/mode/meta.js"></script>
 <script src="./vendor/codemirror/mode/xml/xml.js"></script>

@@ -478,11 +478,8 @@ function fallbackMarkdownToHtml (markdown) {
 }
 
 function showOnly (view) {
-  document.querySelectorAll('[data-codimd-style]').forEach(link => {
-    link.media = view === 'studio' ? 'all' : 'not all'
-  })
   document.body.className = view === 'studio'
-    ? 'codimd-template'
+    ? 'studio-template'
     : view === 'post'
       ? 'post-template is-head-stacked has-serif-title has-sans-body is-dropdown-loaded'
       : 'home-template is-head-stacked has-serif-title has-sans-body is-dropdown-loaded'
@@ -592,7 +589,7 @@ function initCodimdEditor () {
   if (codimdEditor || typeof window.CodeMirror !== 'function') return
   codimdEditor = window.CodeMirror.fromTextArea(dom.contentInput, {
     mode: 'gfm',
-    theme: 'one-dark',
+    theme: 'default',
     lineNumbers: true,
     lineWrapping: true,
     styleActiveLine: true,
@@ -939,17 +936,19 @@ function bind () {
   dom.bothModeButton.addEventListener('click', () => setEditorMode('both'))
   dom.viewModeButton.addEventListener('click', () => setEditorMode('view'))
   dom.nightModeButton.addEventListener('click', () => {
-    document.body.classList.toggle('night')
-    dom.nightModeButton.classList.toggle('active', document.body.classList.contains('night'))
+    document.body.classList.toggle('studio-night')
+    dom.nightModeButton.classList.toggle('active', document.body.classList.contains('studio-night'))
   })
-  dom.mobileModeButton.addEventListener('click', () => setEditorMode(
-    dom.studioView.classList.contains('mode-view') ? 'edit' : 'view'
-  ))
+  if (dom.mobileModeButton) {
+    dom.mobileModeButton.addEventListener('click', () => setEditorMode(
+      dom.studioView.classList.contains('mode-view') ? 'edit' : 'view'
+    ))
+  }
   bindClick(dom.tocBackToTop, () => {
-    document.querySelector('.ui-view-area').scrollTo({ top: 0, behavior: 'smooth' })
+    document.querySelector('.studio-preview').scrollTo({ top: 0, behavior: 'smooth' })
   })
   bindClick(dom.tocGoToBottom, () => {
-    const preview = document.querySelector('.ui-view-area')
+    const preview = document.querySelector('.studio-preview')
     preview.scrollTo({ top: preview.scrollHeight, behavior: 'smooth' })
   })
   dom.pubkeyForm.addEventListener('submit', event => {

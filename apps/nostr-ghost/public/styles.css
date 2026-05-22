@@ -100,132 +100,439 @@
     transform: translate(-50%, 0);
 }
 
-.codimd-template {
+.studio-template {
     overflow: hidden;
+    background: #f4f6f8;
 }
 
-.codimd-template #gh-head {
+.studio-template #gh-head {
     display: none;
 }
 
-.codimd-root {
-    height: calc(100vh - 51px);
-    position: relative;
-}
-
-.codimd-root .ui-content {
-    display: grid;
-    grid-template-columns: minmax(320px, 1fr) minmax(320px, 1fr);
-    height: calc(100% - 26px);
-    align-items: stretch;
-}
-
-.codimd-navbar-spacer {
-    margin-top: 17px;
-    color: #777;
-}
-
-.codimd-mode-nav,
-.codimd-action-nav {
-    padding: 0 !important;
-}
-
-.codimd-mode-nav > li {
-    display: inline-block;
-}
-
-.codimd-mode-nav .btn {
-    height: 34px;
-    min-width: 39px;
-}
-
-.codimd-action-nav > li > a {
-    cursor: pointer;
-}
-
-.codimd-root .ui-status * {
-    font-size: 16px !important;
-}
-
-.codimd-root .ui-user-icon.small {
-    display: inline-block;
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    background: #337ab7;
-}
-
-.codimd-root .dropdown-menu.list a {
-    cursor: pointer;
-}
-
-.codimd-root.mode-edit .ui-content,
-.codimd-root.mode-view .ui-content {
-    grid-template-columns: minmax(0, 1fr);
-}
-
-.codimd-root.mode-edit .ui-view-area,
-.codimd-root.mode-view .ui-edit-area {
-    display: none;
-}
-
-.codimd-root.mode-view .ui-view-area {
-    grid-column: 1;
-}
-
-.nostr-note-panel,
-.document-title {
-    display: none;
-}
-
-.ui-edit-area {
-    grid-column: 1;
-    grid-row: 1;
+.studio-root {
+    --studio-border: #d9e0e7;
+    --studio-muted: #667085;
+    --studio-text: #15171a;
+    --studio-surface: #fff;
+    --studio-soft: #f7f9fb;
     display: flex;
     flex-direction: column;
-    min-width: 0;
-    height: 100%;
+    height: 100vh;
+    min-height: 720px;
+    color: var(--studio-text);
+    background: #f4f6f8;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 14px;
 }
 
-.ui-view-area {
-    grid-column: 2;
-    grid-row: 1;
+.studio-topbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 56px;
+    padding: 0 16px;
+    border-bottom: 1px solid var(--studio-border);
+    background: var(--studio-surface);
+}
+
+.studio-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 168px;
+    color: var(--studio-text);
+    font-size: 18px;
+    font-weight: 750;
+    text-decoration: none;
+}
+
+.studio-brand:hover {
+    color: var(--studio-text);
+    text-decoration: none;
+}
+
+.studio-mode-switch {
+    display: inline-flex;
+    overflow: hidden;
+    border: 1px solid var(--studio-border);
+    border-radius: 6px;
+    background: #fff;
+}
+
+.studio-icon-button,
+.studio-tool {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border: 0;
+    color: #344054;
+    background: transparent;
+    cursor: pointer;
+}
+
+.studio-mode-switch .studio-icon-button + .studio-icon-button {
+    border-left: 1px solid var(--studio-border);
+}
+
+.studio-icon-button:hover,
+.studio-tool:hover,
+.studio-icon-button.active {
+    background: #eef2f6;
+}
+
+.studio-topbar-spacer,
+.studio-statusbar-spacer {
+    flex: 1;
+}
+
+.studio-online {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 32px;
+    padding: 0 10px;
+    border: 1px solid #b9dcff;
+    border-radius: 6px;
+    color: #145ea8;
+    background: #eef7ff;
+    white-space: nowrap;
+}
+
+.studio-online #onlineIdentityLabel {
+    max-width: 150px;
+    overflow: hidden;
+    color: #56708a;
+    text-overflow: ellipsis;
+}
+
+.studio-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 34px;
+    padding: 0 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    color: #1f2937;
+    background: #fff;
+    font-weight: 650;
+    text-decoration: none;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.studio-button:hover {
+    color: #111827;
+    background: #f8fafc;
+    text-decoration: none;
+}
+
+.studio-button.primary {
+    border-color: #1f7aec;
+    color: #fff;
+    background: #1f7aec;
+}
+
+.studio-button.secondary {
+    font-weight: 600;
+}
+
+.studio-workbench {
+    display: grid;
+    grid-template-columns: 280px minmax(360px, 1fr) minmax(360px, 1fr);
+    min-height: 0;
+    flex: 1;
+}
+
+.studio-sidebar,
+.studio-editor-shell,
+.studio-preview-shell {
     min-width: 0;
-    height: 100%;
+    min-height: 0;
+}
+
+.studio-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 14px;
+    border-right: 1px solid var(--studio-border);
+    background: #fbfcfd;
     overflow: auto;
 }
 
-.ui-infobar {
-    position: sticky;
-    top: 0;
-    z-index: 2;
-    max-width: none;
+.studio-panel {
+    border: 1px solid var(--studio-border);
+    border-radius: 8px;
+    background: #fff;
+}
+
+.studio-panel-header {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--studio-border);
+    color: #475467;
+    font-size: 12px;
+    font-weight: 750;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.studio-identity {
     margin: 0;
-    padding: 6px 14px;
-    border-bottom: 1px solid #ddd;
+    padding: 12px;
+    overflow-wrap: anywhere;
+    color: #1f2937;
+    font-size: 12px;
+    line-height: 1.45;
 }
 
-.ui-edit-area .CodeMirror {
-    flex: 1;
-    height: 100% !important;
-}
-
-.ui-edit-area .CodeMirror-scroll {
-    height: 100%;
-}
-
-.codimd-root .ui-toc {
+.studio-link {
     display: block;
-    right: 18px;
-    bottom: 46px;
+    padding: 0 12px 12px;
+    color: #1f7aec;
+    font-weight: 650;
+    text-decoration: none;
 }
 
-.codimd-statusbar {
+.studio-relays {
+    display: block;
+    width: calc(100% - 24px);
+    min-height: 96px;
+    margin: 12px;
+    padding: 10px;
+    border: 1px solid var(--studio-border);
+    border-radius: 6px;
+    font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    resize: vertical;
+}
+
+.studio-button-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    padding: 0 12px 12px;
+}
+
+.studio-button-row .studio-button {
+    min-width: 0;
+    padding: 0 8px;
+    font-size: 12px;
+}
+
+.studio-notes-panel {
+    flex: 1;
+    min-height: 180px;
+    overflow: hidden;
+}
+
+.note-list {
+    display: flex;
+    flex-direction: column;
+    height: calc(100% - 39px);
+    overflow: auto;
+}
+
+.note-item {
+    display: grid;
+    gap: 4px;
     width: 100%;
+    padding: 11px 12px;
+    border: 0;
+    border-bottom: 1px solid #eef2f6;
+    color: #344054;
+    background: transparent;
+    text-align: left;
+    cursor: pointer;
 }
 
-.codimd-statusbar .status-length {
-    color: #fff;
+.note-item strong {
+    overflow: hidden;
+    font-size: 13px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.note-item span {
+    color: var(--studio-muted);
+    font-size: 11px;
+}
+
+.note-item.active {
+    background: #eef7ff;
+}
+
+.note-item.visibility-private {
+    border-left: 3px solid var(--visibility-private-border);
+}
+
+.note-item.visibility-public {
+    border-left: 3px solid var(--visibility-public-border);
+}
+
+.studio-editor-shell {
+    display: grid;
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
+    border-right: 1px solid var(--studio-border);
+    background: #fff;
+}
+
+.studio-document-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 52px;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--studio-border);
+    background: #fff;
+}
+
+.document-title {
+    flex: 1;
+    min-width: 0;
+    height: 34px;
+    border: 0;
+    color: #111827;
+    background: transparent;
+    font-size: 19px;
+    font-weight: 700;
+    outline: none;
+}
+
+.studio-visibility {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.studio-visibility select {
+    height: 30px;
+    border: 1px solid var(--studio-border);
+    border-radius: 6px;
+    background: #fff;
+    font-size: 12px;
+    font-weight: 650;
+}
+
+.studio-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    min-height: 42px;
+    padding: 4px 8px;
+    border-bottom: 1px solid var(--studio-border);
+    background: #f8fafc;
+    overflow-x: auto;
+}
+
+.studio-tool {
+    flex: 0 0 auto;
+    border-radius: 5px;
+    font-weight: 800;
+}
+
+.studio-editor-frame {
+    min-height: 0;
+}
+
+.studio-editor-frame .CodeMirror {
+    height: 100% !important;
+    color: #1f2937;
+    background: #fff;
+    font: 15px/1.55 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.studio-editor-frame .CodeMirror-gutters {
+    border-right: 1px solid #e5e7eb;
+    background: #f8fafc;
+}
+
+.studio-editor-frame .CodeMirror-activeline-background {
+    background: #f6f8fb;
+}
+
+.studio-statusbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 28px;
+    padding: 0 10px;
+    border-top: 1px solid var(--studio-border);
+    color: #667085;
+    background: #f8fafc;
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.studio-preview-shell {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    background: #fff;
+}
+
+.studio-preview-status {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 40px;
+    padding: 0 14px;
+    border-bottom: 1px solid var(--studio-border);
+    color: #475467;
+    background: #f8fafc;
+    font-size: 12px;
+    font-weight: 650;
+    text-transform: uppercase;
+}
+
+.studio-root.visibility-private .studio-preview-status {
+    color: var(--visibility-private-text);
+    background: var(--visibility-private-bg);
+}
+
+.studio-root.visibility-public .studio-preview-status {
+    color: var(--visibility-public-text);
+    background: var(--visibility-public-bg);
+}
+
+.studio-preview {
+    overflow: auto;
+    padding: 32px 44px;
+    color: #222;
+    font-size: 16px;
+    line-height: 1.65;
+}
+
+.studio-preview h1,
+.studio-preview h2,
+.studio-preview h3 {
+    line-height: 1.2;
+}
+
+.studio-root.mode-edit .studio-workbench {
+    grid-template-columns: 280px minmax(0, 1fr);
+}
+
+.studio-root.mode-edit .studio-preview-shell,
+.studio-root.mode-view .studio-editor-shell {
+    display: none;
+}
+
+.studio-root.mode-view .studio-workbench {
+    grid-template-columns: 280px minmax(0, 1fr);
+}
+
+.studio-template.studio-night .studio-root {
+    background: #111827;
+}
+
+.studio-template.studio-night .studio-topbar,
+.studio-template.studio-night .studio-editor-shell,
+.studio-template.studio-night .studio-preview-shell,
+.studio-template.studio-night .studio-panel {
+    background: #172033;
+    color: #f8fafc;
 }
 
 .visibility-badge {
@@ -249,18 +556,6 @@
 }
 
 .visibility-badge-public {
-    border-color: var(--visibility-public-border);
-    color: var(--visibility-public-text);
-    background: var(--visibility-public-bg);
-}
-
-.codimd-root.visibility-private .ui-infobar {
-    border-color: var(--visibility-private-border);
-    color: var(--visibility-private-text);
-    background: var(--visibility-private-bg);
-}
-
-.codimd-root.visibility-public .ui-infobar {
     border-color: var(--visibility-public-border);
     color: var(--visibility-public-text);
     background: var(--visibility-public-bg);
@@ -295,12 +590,45 @@
     color: #a94442;
 }
 
-@media (max-width: 980px) {
-    .codimd-root .ui-content {
+@media (max-width: 1100px) {
+    .studio-workbench,
+    .studio-root.mode-edit .studio-workbench,
+    .studio-root.mode-view .studio-workbench {
+        grid-template-columns: 240px minmax(0, 1fr);
+    }
+
+    .studio-root:not(.mode-view) .studio-preview-shell {
+        display: none;
+    }
+
+    .studio-topbar {
+        flex-wrap: wrap;
+        height: auto;
+        min-height: 56px;
+        padding: 8px;
+    }
+
+    .studio-online {
+        display: none;
+    }
+}
+
+@media (max-width: 760px) {
+    .studio-root {
+        min-height: 0;
+    }
+
+    .studio-workbench,
+    .studio-root.mode-edit .studio-workbench,
+    .studio-root.mode-view .studio-workbench {
         grid-template-columns: minmax(0, 1fr);
     }
 
-    .codimd-root:not(.mode-view) .ui-view-area {
+    .studio-sidebar {
+        display: none;
+    }
+
+    .studio-button.secondary {
         display: none;
     }
 }
