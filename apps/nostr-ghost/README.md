@@ -39,4 +39,5 @@ The app intentionally stores only passkey credential id and relay preferences in
 ## Theme Sources
 
 - `public/casper-screen.css` is copied from `TryGhost/Casper` and is covered by `CASPER-LICENSE`.
+- `public/fork-awesome` is copied from `fork-awesome` and is covered by `FORK-AWESOME-LICENSES`.
 - The editor shell intentionally mirrors CodiMD's familiar navbar, mode buttons, edit pane, and preview pane, without server-only collaboration or database features.

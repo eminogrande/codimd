@@ -278,13 +278,6 @@
     white-space: nowrap;
 }
 
-.fa {
-    display: inline-block;
-    min-width: 14px;
-    font-family: Arial, sans-serif;
-    font-weight: 700;
-}
-
 .ui-content {
     position: fixed;
     top: 51px;
