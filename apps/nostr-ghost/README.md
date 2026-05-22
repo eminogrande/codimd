@@ -7,7 +7,8 @@ The important runtime rule is: there is no Ghost server, no CodiMD server, and n
 ## Model
 
 - Private workspace: encrypted vault event, `kind 30078`, `d=nostr-ghost-vault`.
-- Public blog: Ghost/Casper-style frontend rendering public long-form Nostr events, `kind 30023`.
+- Public blog: Casper theme structure and CSS rendering public long-form Nostr events, `kind 30023`.
+- Private editor: CodiMD-shaped editor shell with edit/both/view modes, backed only by the encrypted Nostr vault.
 - Backup: the encrypted vault contains all notes, including public note source.
 - Identity: passkey PRF derives the same deterministic Nostr key material used by the CodiMD MVP.
 - Deployment: Cloudflare Pages static output from `apps/nostr-ghost/public`.
@@ -34,3 +35,8 @@ npm run test:nostr-ghost
 ```
 
 The app intentionally stores only passkey credential id and relay preferences in browser storage. Notes are restored from Nostr after login.
+
+## Theme Sources
+
+- `public/casper-screen.css` is copied from `TryGhost/Casper` and is covered by `CASPER-LICENSE`.
+- The editor shell intentionally mirrors CodiMD's familiar navbar, mode buttons, edit pane, and preview pane, without server-only collaboration or database features.

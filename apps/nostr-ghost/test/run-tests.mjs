@@ -74,11 +74,16 @@ async function testEvents () {
 async function testNoBackendRuntime () {
   const app = await readFile(join(root, 'app.js'), 'utf8')
   const html = await readFile(join(root, 'index.html'), 'utf8')
+  const casper = await readFile(join(root, 'casper-screen.css'), 'utf8')
   const wrangler = await readFile(join(root, '..', 'wrangler.toml'), 'utf8')
   assert.equal(app.includes('/api/'), false)
   assert.equal(app.includes('sqlite'), false)
   assert.equal(app.includes('mysql'), false)
   assert(html.includes('script type="module"'), true)
+  assert(html.includes('class="gh-head outer"'), true)
+  assert(html.includes('class="navbar navbar-default navbar-fixed-top'), true)
+  assert(casper.includes('.post-card'), true)
+  assert(casper.includes('.article-title'), true)
   assert(wrangler.includes('pages_build_output_dir = "public"'), true)
 }
 
@@ -107,6 +112,8 @@ async function testStaticServer () {
   await new Promise(resolve => server.close(resolve))
   assert.equal(response.status, 200)
   assert(body.includes('Nostr Ghost'), true)
+  assert(body.includes('Private studio'), true)
+  assert(body.includes('CodiMD'), true)
 }
 
 await testBase64URL()

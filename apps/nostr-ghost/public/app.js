@@ -65,12 +65,21 @@ const dom = {
   noteList: document.getElementById('noteList'),
   postGrid: document.getElementById('postGrid'),
   postView: document.getElementById('postView'),
-  blogView: document.getElementById('blogView'),
+  blogView: document.querySelector('[data-view="blog"]'),
   studioView: document.getElementById('studioView'),
   blogHero: document.getElementById('blogHero'),
   postTitle: document.getElementById('postTitle'),
+  postExcerpt: document.getElementById('postExcerpt'),
   postDate: document.getElementById('postDate'),
   postContent: document.getElementById('postContent'),
+  docPreview: document.getElementById('doc'),
+  siteFooter: document.getElementById('siteFooter'),
+  mobileMenuButton: document.getElementById('mobileMenuButton'),
+  lastChangeLabel: document.getElementById('lastChangeLabel'),
+  editModeButton: document.getElementById('editModeButton'),
+  bothModeButton: document.getElementById('bothModeButton'),
+  viewModeButton: document.getElementById('viewModeButton'),
+  mobileModeButton: document.getElementById('mobileModeButton'),
   pubkeyForm: document.getElementById('pubkeyForm'),
   pubkeyInput: document.getElementById('pubkeyInput'),
   refreshPublicButton: document.getElementById('refreshPublicButton'),
@@ -422,10 +431,16 @@ function markdownToHtml (markdown) {
 }
 
 function showOnly (view) {
+  document.body.className = view === 'studio'
+    ? 'codimd-template'
+    : view === 'post'
+      ? 'post-template is-head-stacked has-serif-title has-sans-body'
+      : 'home-template is-head-stacked has-serif-title has-sans-body'
   dom.blogHero.classList.toggle('hidden', view !== 'blog')
   dom.blogView.classList.toggle('hidden', view !== 'blog')
   dom.postView.classList.toggle('hidden', view !== 'post')
   dom.studioView.classList.toggle('hidden', view !== 'studio')
+  dom.siteFooter.classList.toggle('hidden', view === 'studio')
 }
 
 function renderIdentity () {
@@ -438,12 +453,24 @@ function renderPosts () {
     dom.postGrid.innerHTML = '<p class="empty">No public posts found on the configured relays.</p>'
     return
   }
-  dom.postGrid.innerHTML = state.posts.map(post => `
-    <a class="post-card" href="#/post/${state.blogPubkey}/${encodeURIComponent(post.slug)}">
-      <h3>${escapeHtml(post.title)}</h3>
-      <p>${escapeHtml(post.summary)}</p>
-      <span class="post-meta">${formatDate(post.createdAt)}</span>
-    </a>
+  dom.postGrid.innerHTML = state.posts.map((post, index) => `
+    <article class="post-card no-image${index === 0 ? ' post-card-large' : ''}">
+      <div class="post-card-content">
+        <a class="post-card-content-link" href="#/post/${state.blogPubkey}/${encodeURIComponent(post.slug)}">
+          <header class="post-card-header">
+            <div class="post-card-tags">
+              <span class="post-card-primary-tag">Nostr</span>
+            </div>
+            <h2 class="post-card-title">${escapeHtml(post.title)}</h2>
+          </header>
+          <div class="post-card-excerpt">${escapeHtml(post.summary)}</div>
+        </a>
+        <footer class="post-card-meta">
+          <time class="post-card-meta-date" datetime="${escapeHtml(post.createdAt.slice(0, 10))}">${formatDate(post.createdAt)}</time>
+          <span class="post-card-meta-length">${readingTime(post.content)}</span>
+        </footer>
+      </div>
+    </article>
   `).join('')
 }
 
@@ -451,12 +478,15 @@ function renderPost (slug) {
   const post = state.posts.find(candidate => candidate.slug === slug)
   if (!post) {
     dom.postTitle.textContent = 'Post not loaded'
+    dom.postExcerpt.textContent = ''
     dom.postDate.textContent = ''
     dom.postContent.innerHTML = '<p>Refresh the blog and try again.</p>'
     return
   }
   dom.postTitle.textContent = post.title
+  dom.postExcerpt.textContent = post.summary
   dom.postDate.textContent = formatDate(post.createdAt)
+  dom.postDate.setAttribute('datetime', post.createdAt.slice(0, 10))
   dom.postContent.innerHTML = markdownToHtml(post.content)
 }
 
@@ -464,9 +494,13 @@ function renderNotes () {
   dom.noteList.innerHTML = state.notes.map(note => `
     <button class="note-item" data-note-id="${note.id}" type="button">
       <strong>${escapeHtml(note.title)}</strong>
-      <span>${note.visibility} · ${formatDate(note.updatedAt)}</span>
+      <span>${note.visibility} &middot; ${formatDate(note.updatedAt)}</span>
     </button>
   `).join('')
+}
+
+function updatePreview () {
+  dom.docPreview.innerHTML = markdownToHtml(dom.contentInput.value)
 }
 
 function renderEditor () {
@@ -474,6 +508,8 @@ function renderEditor () {
   dom.titleInput.value = note ? note.title : ''
   dom.contentInput.value = note ? note.content : ''
   dom.visibilityInput.value = note ? note.visibility : 'private'
+  dom.lastChangeLabel.textContent = note ? formatDate(note.updatedAt) : ''
+  updatePreview()
 }
 
 function newNote () {
@@ -503,6 +539,21 @@ function formatDate (value) {
     month: 'short',
     day: 'numeric'
   }).format(new Date(value))
+}
+
+function readingTime (content) {
+  const words = String(content || '').trim().split(/\s+/).filter(Boolean).length
+  const minutes = Math.max(1, Math.ceil(words / 220))
+  return minutes + ' min read'
+}
+
+function setEditorMode (mode) {
+  dom.studioView.classList.toggle('mode-edit', mode === 'edit')
+  dom.studioView.classList.toggle('mode-both', mode === 'both')
+  dom.studioView.classList.toggle('mode-view', mode === 'view')
+  dom.editModeButton.classList.toggle('active', mode === 'edit')
+  dom.bothModeButton.classList.toggle('active', mode === 'both')
+  dom.viewModeButton.classList.toggle('active', mode === 'view')
 }
 
 async function route () {
@@ -542,6 +593,9 @@ function bind () {
   dom.signinButton.addEventListener('click', () => {
     signIn().catch(error => toast(error.message || String(error)))
   })
+  dom.mobileMenuButton.addEventListener('click', () => {
+    document.body.classList.toggle('gh-head-open')
+  })
   dom.restoreButton.addEventListener('click', () => {
     restoreVault().catch(error => toast(error.message || String(error)))
   })
@@ -561,6 +615,14 @@ function bind () {
     state.selectedId = button.dataset.noteId
     renderEditor()
   })
+  dom.titleInput.addEventListener('input', updatePreview)
+  dom.contentInput.addEventListener('input', updatePreview)
+  dom.editModeButton.addEventListener('click', () => setEditorMode('edit'))
+  dom.bothModeButton.addEventListener('click', () => setEditorMode('both'))
+  dom.viewModeButton.addEventListener('click', () => setEditorMode('view'))
+  dom.mobileModeButton.addEventListener('click', () => setEditorMode(
+    dom.studioView.classList.contains('mode-view') ? 'edit' : 'view'
+  ))
   dom.pubkeyForm.addEventListener('submit', event => {
     event.preventDefault()
     state.blogPubkey = dom.pubkeyInput.value.trim()
@@ -573,6 +635,7 @@ function bind () {
   window.addEventListener('hashchange', () => {
     route().catch(error => toast(error.message || String(error)))
   })
+  setEditorMode('both')
 }
 
 bind()

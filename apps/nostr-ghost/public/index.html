@@ -2,87 +2,182 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="HandheldFriendly" content="True">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="color-scheme" content="light">
   <title>Nostr Ghost</title>
+  <link rel="preload" as="style" href="./casper-screen.css">
+  <link rel="stylesheet" href="./casper-screen.css">
   <link rel="stylesheet" href="./styles.css">
 </head>
-<body>
-  <header class="site-shell">
-    <a class="brand" href="#/">Nostr Ghost</a>
-    <nav class="nav">
-      <a href="#/" data-nav="blog">Blog</a>
-      <a href="#/studio" data-nav="studio">Private studio</a>
-    </nav>
-    <button class="button button-dark" id="signinButton" type="button">Passkey</button>
+<body class="home-template is-head-stacked has-serif-title has-sans-body">
+<div class="viewport" id="ghostViewport">
+  <header id="gh-head" class="gh-head outer">
+    <div class="gh-head-inner inner">
+      <div class="gh-head-brand">
+        <a class="gh-head-logo no-image" href="#/">Nostr Ghost</a>
+        <button class="gh-burger" id="mobileMenuButton" aria-label="Main Menu"></button>
+      </div>
+
+      <nav class="gh-head-menu">
+        <ul class="nav">
+          <li><a href="#/">Home</a></li>
+          <li><a href="#/studio">Private studio</a></li>
+        </ul>
+      </nav>
+
+      <div class="gh-head-actions">
+        <button class="gh-head-button" id="signinButton" type="button">Passkey</button>
+      </div>
+    </div>
   </header>
 
-  <main>
-    <section class="hero" id="blogHero">
-      <div class="hero-inner">
-        <p class="eyebrow">Public notes from Nostr</p>
-        <h1 id="blogTitle">Ghost-style publishing, Nostr storage.</h1>
-        <p id="blogSubtitle">Open a public key, read long-form posts, or sign in to publish from an encrypted private vault.</p>
-        <form class="pubkey-form" id="pubkeyForm">
+  <div class="site-content">
+    <section class="site-header-content outer" id="blogHero">
+      <div class="site-header-inner inner">
+        <h1 class="site-title">Nostr Ghost</h1>
+        <p class="site-description">Publishing that looks like Ghost, with private notes encrypted to Nostr.</p>
+        <form class="nostr-open-blog" id="pubkeyForm">
           <input id="pubkeyInput" name="pubkey" autocomplete="off" spellcheck="false" placeholder="Nostr public key hex">
-          <button class="button" type="submit">Open blog</button>
+          <button class="gh-head-button" type="submit">Open blog</button>
         </form>
       </div>
     </section>
 
-    <section class="blog-view" id="blogView">
-      <div class="section-head">
-        <div>
-          <p class="eyebrow">Latest</p>
-          <h2>Posts</h2>
+    <main id="site-main" class="site-main outer" data-view="blog">
+      <div class="inner posts">
+        <div class="nostr-feed-tools">
+          <p class="post-card-primary-tag">Latest public Nostr posts</p>
+          <button class="gh-head-button secondary" id="refreshPublicButton" type="button">Refresh</button>
         </div>
-        <button class="button button-light" id="refreshPublicButton" type="button">Refresh</button>
+        <div class="post-feed" id="postGrid"></div>
       </div>
-      <div class="post-grid" id="postGrid"></div>
-    </section>
+    </main>
 
-    <article class="post-view hidden" id="postView">
-      <a class="back-link" href="#/">Back to posts</a>
-      <p class="eyebrow" id="postDate"></p>
-      <h1 id="postTitle"></h1>
-      <div class="post-content" id="postContent"></div>
-    </article>
+    <main id="postView" class="site-main hidden" data-view="post">
+      <article class="article post no-image">
+        <header class="article-header gh-canvas">
+          <div class="article-tag post-card-tags">
+            <span class="post-card-primary-tag">Nostr</span>
+          </div>
+          <h1 class="article-title" id="postTitle"></h1>
+          <p class="article-excerpt" id="postExcerpt"></p>
+          <div class="article-byline">
+            <section class="article-byline-content">
+              <ul class="author-list instapaper_ignore">
+                <li class="author-list-item">
+                  <span class="author-avatar author-profile-image">N</span>
+                </li>
+              </ul>
+              <div class="article-byline-meta">
+                <h4 class="author-name">Nostr</h4>
+                <div class="byline-meta-content">
+                  <time class="byline-meta-date" id="postDate"></time>
+                  <span class="byline-reading-time"><span class="bull">&bull;</span> public relay post</span>
+                </div>
+              </div>
+            </section>
+            <a href="#/" class="gh-button gh-button-share">Back</a>
+          </div>
+        </header>
+        <section class="gh-content gh-canvas" id="postContent"></section>
+      </article>
+    </main>
 
-    <section class="studio hidden" id="studioView">
-      <aside class="sidebar">
-        <div class="identity">
-          <p class="eyebrow">Identity</p>
-          <p id="identityLabel">Not signed in</p>
+    <section class="codimd-root hidden" id="studioView" data-view="studio">
+      <nav class="navbar navbar-default navbar-fixed-top unselectable hidden-print">
+        <div class="navbar-header">
+          <a class="navbar-brand pull-left" href="#/"><span class="fa">&#xf0f6;</span> CodiMD</a>
+          <div class="nav-mobile pull-right visible-xs">
+            <button class="btn btn-link ui-mode" id="mobileModeButton" type="button"><span class="fa">&#xf040;</span></button>
+          </div>
         </div>
-        <div class="relay-box">
+        <div class="collapse navbar-collapse">
+          <ul class="nav navbar-nav navbar-form navbar-left">
+            <li class="btn-group mode-buttons">
+              <button class="btn btn-default ui-edit active" id="editModeButton" type="button" title="Edit"><span class="fa">&#xf040;</span></button>
+              <button class="btn btn-default ui-both active" id="bothModeButton" type="button" title="Both"><span class="fa">&#xf0db;</span></button>
+              <button class="btn btn-default ui-view" id="viewModeButton" type="button" title="View"><span class="fa">&#xf06e;</span></button>
+            </li>
+            <li><button class="btn btn-link ui-help" type="button" title="Help"><span class="fa">&#xf059;</span></button></li>
+          </ul>
+          <ul class="nav navbar-nav navbar-right">
+            <li id="online-user-list">
+              <a class="ui-status">
+                <span class="label label-primary ui-status-online"><span class="fa">&#xf0c0;</span> NOSTR</span>
+              </a>
+            </li>
+          </ul>
+          <ul class="nav navbar-nav navbar-right nav-actions">
+            <li><button class="nav-button ui-new" id="newNoteButton" type="button"><span class="fa">&#xf067;</span> New</button></li>
+            <li><button class="nav-button ui-publish" id="publishButton" type="button"><span class="fa">&#xf08d;</span> Publish</button></li>
+            <li class="dropdown">
+              <button class="nav-button" type="button">Menu <span class="fa">&#xf0d7;</span></button>
+              <ul class="dropdown-menu list">
+                <li class="dropdown-header">Nostr</li>
+                <li><button id="restoreButton" type="button"><span class="fa">&#xf0ed;</span> Restore encrypted vault</button></li>
+                <li><button id="backupButton" type="button"><span class="fa">&#xf0ee;</span> Backup encrypted vault</button></li>
+                <li><button id="saveButton" type="button"><span class="fa">&#xf0c7;</span> Save encrypted</button></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </nav>
+
+      <div class="ui-spinner unselectable hidden-print"></div>
+      <div class="row ui-content">
+        <aside class="nostr-note-panel">
+          <div class="identity">
+            <small class="text-uppercase">Passkey identity</small>
+            <p id="identityLabel">Not signed in</p>
+          </div>
           <label for="relaysInput">Relays</label>
           <textarea id="relaysInput" spellcheck="false"></textarea>
-        </div>
-        <div class="sidebar-actions">
-          <button class="button button-light" id="restoreButton" type="button">Restore</button>
-          <button class="button button-light" id="backupButton" type="button">Backup</button>
-        </div>
-        <button class="button" id="newNoteButton" type="button">New note</button>
-        <div class="note-list" id="noteList"></div>
-      </aside>
+          <div class="note-list" id="noteList"></div>
+        </aside>
 
-      <section class="editor">
-        <div class="editor-toolbar">
-          <select id="visibilityInput" aria-label="Visibility">
-            <option value="private">Private encrypted</option>
-            <option value="public">Public blog post</option>
-          </select>
-          <button class="button button-light" id="saveButton" type="button">Save encrypted</button>
-          <button class="button button-dark" id="publishButton" type="button">Publish public</button>
+        <div class="ui-edit-area unselectable">
+          <input id="titleInput" class="document-title" placeholder="Untitled note">
+          <textarea id="contentInput" spellcheck="true" placeholder="Write markdown..."></textarea>
         </div>
-        <input id="titleInput" class="title-input" placeholder="Untitled note">
-        <textarea id="contentInput" class="content-input" placeholder="Write markdown..."></textarea>
-      </section>
+
+        <div class="ui-view-area">
+          <div class="ui-infobar container-fluid unselectable hidden-print">
+            <small>
+              <span>
+                <span class="ui-no-lastchangeuser">&thinsp;<span class="fa">&#xf017;</span></span>
+                &nbsp;<span class="text-uppercase ui-status-lastchange">saved through nostr</span>
+                <span class="ui-lastchange text-uppercase" id="lastChangeLabel"></span>
+              </span>
+              <span class="ui-permission dropdown pull-right">
+                <select id="visibilityInput" class="ui-permission-label text-uppercase">
+                  <option value="private">Private encrypted</option>
+                  <option value="public">Public blog post</option>
+                </select>
+              </span>
+            </small>
+          </div>
+          <div id="doc" class="markdown-body container-fluid"></div>
+        </div>
+      </div>
     </section>
-  </main>
+  </div>
 
-  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <footer class="site-footer outer" id="siteFooter">
+    <div class="inner">
+      <section class="copyright"><a href="#/">Nostr Ghost</a> &copy; 2026</section>
+      <nav class="site-footer-nav">
+        <a href="#/">Latest</a>
+        <a href="#/studio">Private studio</a>
+      </nav>
+      <div class="gh-powered-by"><a href="https://github.com/eminogrande/codimd/tree/nostr-vault-cli" target="_blank" rel="noopener">Powered by Nostr</a></div>
+    </div>
+  </footer>
+</div>
 
-  <script type="module" src="./app.js"></script>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script type="module" src="./app.js"></script>
 </body>
 </html>
