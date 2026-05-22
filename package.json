@@ -238,6 +238,7 @@
     "ignore": [
       "/public/build",
       "/public/vendor",
+      "/apps/nostr-ghost/public/vendor",
       "/lib/ot",
       "webpack.*"
     ]

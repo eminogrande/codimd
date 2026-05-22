@@ -44,6 +44,9 @@ const autosaveDelayMs = 1800
 let autosaveTimer = null
 let autosaveInFlight = false
 let autosaveQueued = false
+let codimdEditor = null
+let editorHydrating = false
+let markdownRenderer = null
 
 const state = {
   privateKey: null,
@@ -358,10 +361,11 @@ async function restoreVault (options = {}) {
 
 function currentNoteFromForm () {
   const existing = state.notes.find(note => note.id === state.selectedId) || {}
+  const content = editorValue()
   return normalizeNote({
     ...existing,
-    title: dom.titleInput.value,
-    content: dom.contentInput.value,
+    title: noteTitle(content, dom.titleInput.value || existing.title),
+    content,
     visibility: dom.visibilityInput.value,
     slug: existing.slug || undefined
   })
@@ -430,7 +434,24 @@ async function fetchPublicPosts () {
   renderPosts()
 }
 
+function getMarkdownRenderer () {
+  if (!markdownRenderer && typeof window.markdownit === 'function') {
+    markdownRenderer = window.markdownit({
+      html: false,
+      linkify: true,
+      typographer: true
+    })
+  }
+  return markdownRenderer
+}
+
 function markdownToHtml (markdown) {
+  const renderer = getMarkdownRenderer()
+  if (renderer) return renderer.render(String(markdown || ''))
+  return fallbackMarkdownToHtml(markdown)
+}
+
+function fallbackMarkdownToHtml (markdown) {
   const escaped = String(markdown || '')
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
@@ -447,6 +468,9 @@ function markdownToHtml (markdown) {
 }
 
 function showOnly (view) {
+  document.querySelectorAll('[data-codimd-style]').forEach(link => {
+    link.media = view === 'studio' ? 'all' : 'not all'
+  })
   document.body.className = view === 'studio'
     ? 'codimd-template'
     : view === 'post'
@@ -522,8 +546,121 @@ function renderNotes () {
   `).join('')
 }
 
+function initCodimdEditor () {
+  if (codimdEditor || typeof window.CodeMirror !== 'function') return
+  codimdEditor = window.CodeMirror.fromTextArea(dom.contentInput, {
+    mode: 'gfm',
+    theme: 'one-dark',
+    lineNumbers: true,
+    lineWrapping: true,
+    styleActiveLine: true,
+    matchBrackets: true,
+    autoCloseBrackets: true,
+    tabSize: 4,
+    indentUnit: 4,
+    indentWithTabs: false,
+    inputStyle: 'textarea',
+    extraKeys: {
+      Enter: 'newlineAndIndentContinueMarkdownList'
+    }
+  })
+  codimdEditor.setSize('100%', '100%')
+  codimdEditor.on('change', () => {
+    if (!editorHydrating) handleEditorChange()
+  })
+}
+
+function editorValue () {
+  return codimdEditor ? codimdEditor.getValue() : dom.contentInput.value
+}
+
+function setEditorValue (value) {
+  editorHydrating = true
+  if (codimdEditor) {
+    codimdEditor.setValue(value)
+    codimdEditor.refresh()
+  } else {
+    dom.contentInput.value = value
+  }
+  editorHydrating = false
+}
+
+function noteTitle (content, fallback) {
+  const heading = String(content || '').match(/^#\s+(.+)$/m)
+  if (heading && heading[1].trim()) return heading[1].trim()
+  const firstLine = String(content || '').split('\n').map(line => line.trim()).find(Boolean)
+  return firstLine
+    ? firstLine.replace(/^[#>*\-\d.\s]+/, '').replace(/[*_`[\]()]/g, '').slice(0, 80) || fallback || 'Untitled'
+    : fallback || 'Untitled'
+}
+
+function wrapSelection (before, after = '', placeholder = 'text') {
+  if (codimdEditor) {
+    const selection = codimdEditor.getSelection() || placeholder
+    codimdEditor.replaceSelection(before + selection + after, 'around')
+    codimdEditor.focus()
+    return
+  }
+  const start = dom.contentInput.selectionStart
+  const end = dom.contentInput.selectionEnd
+  const selection = dom.contentInput.value.slice(start, end) || placeholder
+  dom.contentInput.setRangeText(before + selection + after, start, end, 'end')
+  dom.contentInput.focus()
+  handleEditorChange()
+}
+
+function prefixSelectionLines (prefix) {
+  if (codimdEditor) {
+    const selection = codimdEditor.getSelection() || 'text'
+    codimdEditor.replaceSelection(selection.split('\n').map(line => prefix + line).join('\n'))
+    codimdEditor.focus()
+    return
+  }
+  const start = dom.contentInput.selectionStart
+  const end = dom.contentInput.selectionEnd
+  const selection = dom.contentInput.value.slice(start, end) || 'text'
+  dom.contentInput.setRangeText(selection.split('\n').map(line => prefix + line).join('\n'), start, end, 'end')
+  dom.contentInput.focus()
+  handleEditorChange()
+}
+
+function insertMarkdown (markdown) {
+  if (codimdEditor) {
+    codimdEditor.replaceSelection(markdown)
+    codimdEditor.focus()
+    return
+  }
+  const start = dom.contentInput.selectionStart
+  const end = dom.contentInput.selectionEnd
+  dom.contentInput.setRangeText(markdown, start, end, 'end')
+  dom.contentInput.focus()
+  handleEditorChange()
+}
+
+function bindCodimdToolbar () {
+  const bindButton = (id, action) => {
+    const button = document.getElementById(id)
+    if (!button) return
+    button.addEventListener('click', action)
+  }
+  bindButton('makeBold', () => wrapSelection('**', '**', 'bold text'))
+  bindButton('makeItalic', () => wrapSelection('*', '*', 'italic text'))
+  bindButton('makeStrike', () => wrapSelection('~~', '~~', 'struck text'))
+  bindButton('makeHeader', () => prefixSelectionLines('### '))
+  bindButton('makeCode', () => wrapSelection('`', '`', 'code'))
+  bindButton('makeQuote', () => prefixSelectionLines('> '))
+  bindButton('makeGenericList', () => prefixSelectionLines('- '))
+  bindButton('makeOrderedList', () => prefixSelectionLines('1. '))
+  bindButton('makeCheckList', () => prefixSelectionLines('- [ ] '))
+  bindButton('makeLink', () => wrapSelection('[', '](https://)', 'link text'))
+  bindButton('makeImage', () => insertMarkdown('![alt text](https://)\n'))
+  bindButton('makeTable', () => insertMarkdown('\n| Column | Column |\n| --- | --- |\n| Cell | Cell |\n'))
+  bindButton('makeLine', () => insertMarkdown('\n---\n'))
+  bindButton('makeComment', () => wrapSelection('<!-- ', ' -->', 'comment'))
+}
+
 function updatePreview () {
-  dom.docPreview.innerHTML = markdownToHtml(dom.contentInput.value)
+  dom.docPreview.innerHTML = markdownToHtml(editorValue())
   renderVisibilityState()
 }
 
@@ -567,6 +704,7 @@ function autosaveLabel () {
 
 function handleEditorChange () {
   updatePreview()
+  dom.titleInput.value = noteTitle(editorValue(), dom.titleInput.value)
   upsertCurrentNote()
   scheduleEncryptedAutosave()
 }
@@ -619,12 +757,14 @@ async function encryptedAutosave () {
 }
 
 function renderEditor () {
+  initCodimdEditor()
   const note = state.notes.find(candidate => candidate.id === state.selectedId)
   dom.titleInput.value = note ? note.title : ''
-  dom.contentInput.value = note ? note.content : ''
+  setEditorValue(note ? note.content : '')
   dom.visibilityInput.value = note ? note.visibility : 'private'
   dom.lastChangeLabel.textContent = note ? formatDate(note.updatedAt) : ''
   updatePreview()
+  if (codimdEditor) codimdEditor.refresh()
 }
 
 function newNote () {
@@ -702,6 +842,8 @@ async function route () {
 }
 
 function bind () {
+  initCodimdEditor()
+  bindCodimdToolbar()
   dom.relaysInput.value = state.relays.join('\n')
   dom.pubkeyInput.value = state.blogPubkey
   renderIdentity()

@@ -9,7 +9,15 @@
   <title>Nostr Ghost</title>
   <link rel="preload" as="style" href="./casper-screen.css">
   <link rel="stylesheet" href="./casper-screen.css">
+  <link rel="stylesheet" href="./vendor/bootstrap/css/bootstrap.min.css" media="not all" data-codimd-style>
   <link rel="stylesheet" href="./fork-awesome/css/fork-awesome.min.css">
+  <link rel="stylesheet" href="./codimd-css/font.css" media="not all" data-codimd-style>
+  <link rel="stylesheet" href="./codimd-css/site.css" media="not all" data-codimd-style>
+  <link rel="stylesheet" href="./codimd-css/index.css" media="not all" data-codimd-style>
+  <link rel="stylesheet" href="./codimd-css/extra.css" media="not all" data-codimd-style>
+  <link rel="stylesheet" href="./codimd-css/markdown.css" media="not all" data-codimd-style>
+  <link rel="stylesheet" href="./vendor/codemirror/lib/codemirror.css" media="not all" data-codimd-style>
+  <link rel="stylesheet" href="./vendor/codemirror/theme/one-dark.css" media="not all" data-codimd-style>
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body class="home-template is-head-stacked has-serif-title has-sans-body">
@@ -142,6 +150,26 @@
         </aside>
 
         <div class="ui-edit-area unselectable">
+          <div class="toolbar codimd-editor-toolbar">
+            <div class="btn-toolbar" role="toolbar" aria-label="Editor toolbar">
+              <div class="btn-group" role="group">
+                <button id="makeBold" class="btn btn-sm btn-dark text-uppercase" type="button" title="Bold"><i class="fa fa-bold fa-fw"></i></button>
+                <button id="makeItalic" class="btn btn-sm btn-dark text-uppercase" type="button" title="Italic"><i class="fa fa-italic fa-fw"></i></button>
+                <button id="makeStrike" class="btn btn-sm btn-dark text-uppercase" type="button" title="Strikethrough"><i class="fa fa-strikethrough fa-fw"></i></button>
+                <button id="makeHeader" class="btn btn-sm btn-dark text-uppercase" type="button" title="Heading"><i class="fa fa-h1 fa-fw">H</i></button>
+                <button id="makeCode" class="btn btn-sm btn-dark text-uppercase" type="button" title="Code"><i class="fa fa-code fa-fw"></i></button>
+                <button id="makeQuote" class="btn btn-sm btn-dark text-uppercase" type="button" title="Quote"><i class="fa fa-quote-right fa-fw"></i></button>
+                <button id="makeGenericList" class="btn btn-sm btn-dark text-uppercase" type="button" title="List"><i class="fa fa-list fa-fw"></i></button>
+                <button id="makeOrderedList" class="btn btn-sm btn-dark text-uppercase" type="button" title="Numbered List"><i class="fa fa-list-ol fa-fw"></i></button>
+                <button id="makeCheckList" class="btn btn-sm btn-dark text-uppercase" type="button" title="Check List"><i class="fa fa-check-square fa-fw"></i></button>
+                <button id="makeLink" class="btn btn-sm btn-dark text-uppercase" type="button" title="Link"><i class="fa fa-link fa-fw"></i></button>
+                <button id="makeImage" class="btn btn-sm btn-dark text-uppercase" type="button" title="Image"><i class="fa fa-image fa-fw"></i></button>
+                <button id="makeTable" class="btn btn-sm btn-dark text-uppercase" type="button" title="Table"><i class="fa fa-table fa-fw"></i></button>
+                <button id="makeLine" class="btn btn-sm btn-dark text-uppercase" type="button" title="Line"><i class="fa fa-minus fa-fw"></i></button>
+                <button id="makeComment" class="btn btn-sm btn-dark text-uppercase" type="button" title="Comment"><i class="fa fa-comment fa-fw"></i></button>
+              </div>
+            </div>
+          </div>
           <input id="titleInput" class="document-title" placeholder="Untitled note">
           <textarea id="contentInput" spellcheck="true" placeholder="Write markdown..."></textarea>
         </div>
@@ -183,6 +211,20 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+<script src="./vendor/jquery/jquery.min.js"></script>
+<script src="./vendor/bootstrap/js/bootstrap.min.js"></script>
+<script src="./vendor/codemirror/codemirror.min.js"></script>
+<script src="./vendor/codemirror/mode/meta.js"></script>
+<script src="./vendor/codemirror/mode/xml/xml.js"></script>
+<script src="./vendor/codemirror/addon/mode/overlay.js"></script>
+<script src="./vendor/codemirror/mode/markdown/markdown.js"></script>
+<script src="./vendor/codemirror/mode/gfm/gfm.js"></script>
+<script src="./vendor/codemirror/addon/edit/continuelist.js"></script>
+<script src="./vendor/codemirror/addon/edit/closebrackets.js"></script>
+<script src="./vendor/codemirror/addon/edit/matchbrackets.js"></script>
+<script src="./vendor/codemirror/addon/selection/active-line.js"></script>
+<script src="./vendor/codemirror/addon/display/placeholder.js"></script>
+<script src="./vendor/markdown-it/markdown-it.min.js"></script>
 <script type="module" src="./app.js"></script>
 </body>
 </html>
