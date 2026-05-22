@@ -60,6 +60,7 @@ const state = {
 
 const dom = {
   signinButton: document.getElementById('signinButton'),
+  studioSigninButton: document.getElementById('studioSigninButton'),
   identityLabel: document.getElementById('identityLabel'),
   identityBlogLink: document.getElementById('identityBlogLink'),
   relaysInput: document.getElementById('relaysInput'),
@@ -74,6 +75,12 @@ const dom = {
   visibilityInput: document.getElementById('visibilityInput'),
   visibilityBadge: document.getElementById('visibilityBadge'),
   visibilityNavBadge: document.getElementById('visibilityNavBadge'),
+  onlineCountLabel: document.getElementById('onlineCountLabel'),
+  onlineIdentityLabel: document.getElementById('onlineIdentityLabel'),
+  cursorStatus: document.getElementById('cursorStatus'),
+  selectionStatus: document.getElementById('selectionStatus'),
+  fileStatus: document.getElementById('fileStatus'),
+  lengthStatus: document.getElementById('lengthStatus'),
   noteList: document.getElementById('noteList'),
   postGrid: document.getElementById('postGrid'),
   postView: document.getElementById('postView'),
@@ -92,7 +99,10 @@ const dom = {
   editModeButton: document.getElementById('editModeButton'),
   bothModeButton: document.getElementById('bothModeButton'),
   viewModeButton: document.getElementById('viewModeButton'),
+  nightModeButton: document.getElementById('nightModeButton'),
   mobileModeButton: document.getElementById('mobileModeButton'),
+  tocBackToTop: document.getElementById('tocBackToTop'),
+  tocGoToBottom: document.getElementById('tocGoToBottom'),
   pubkeyForm: document.getElementById('pubkeyForm'),
   pubkeyInput: document.getElementById('pubkeyInput'),
   refreshPublicButton: document.getElementById('refreshPublicButton'),
@@ -486,6 +496,13 @@ function showOnly (view) {
 function renderIdentity () {
   dom.identityLabel.textContent = state.pubkey || 'Not signed in'
   dom.signinButton.textContent = state.pubkey ? 'Unlocked' : 'Passkey'
+  dom.studioSigninButton.innerHTML = state.pubkey
+    ? '<i class="fa fa-key fa-fw"></i> Passkey unlocked'
+    : '<i class="fa fa-key fa-fw"></i> Unlock passkey'
+  dom.onlineIdentityLabel.textContent = state.pubkey
+    ? 'Passkey ' + state.pubkey.slice(0, 12) + '...'
+    : 'Local browser'
+  dom.onlineCountLabel.textContent = '1'
   const blogPubkey = state.pubkey || state.blogPubkey
   const blogHref = /^[0-9a-f]{64}$/i.test(blogPubkey) ? '#/blog/' + blogPubkey : '#/'
   dom.blogLink.href = blogHref
@@ -546,6 +563,31 @@ function renderNotes () {
   `).join('')
 }
 
+function updateEditorStatus () {
+  const value = editorValue()
+  const lines = value ? value.split('\n').length : 1
+  let line = 1
+  let column = 1
+  let selection = ''
+
+  if (codimdEditor) {
+    const cursor = codimdEditor.getCursor()
+    line = cursor.line + 1
+    column = cursor.ch + 1
+    const selected = codimdEditor.getSelection()
+    selection = selected ? ' - ' + selected.length + ' selected' : ''
+  } else if (dom.contentInput) {
+    const prefix = dom.contentInput.value.slice(0, dom.contentInput.selectionStart || 0)
+    line = prefix.split('\n').length
+    column = prefix.split('\n').pop().length + 1
+  }
+
+  dom.cursorStatus.textContent = `Line ${line}, Column ${column}`
+  dom.selectionStatus.textContent = selection
+  dom.fileStatus.textContent = ` - ${lines} Lines`
+  dom.lengthStatus.textContent = `Length ${value.length}`
+}
+
 function initCodimdEditor () {
   if (codimdEditor || typeof window.CodeMirror !== 'function') return
   codimdEditor = window.CodeMirror.fromTextArea(dom.contentInput, {
@@ -567,7 +609,10 @@ function initCodimdEditor () {
   codimdEditor.setSize('100%', '100%')
   codimdEditor.on('change', () => {
     if (!editorHydrating) handleEditorChange()
+    updateEditorStatus()
   })
+  codimdEditor.on('cursorActivity', updateEditorStatus)
+  updateEditorStatus()
 }
 
 function editorValue () {
@@ -583,6 +628,7 @@ function setEditorValue (value) {
     dom.contentInput.value = value
   }
   editorHydrating = false
+  updateEditorStatus()
 }
 
 function noteTitle (content, fallback) {
@@ -677,6 +723,7 @@ function visibilityIcon (visibility) {
 }
 
 function renderVisibilityBadge (element, visibility) {
+  if (!element) return
   element.className = `visibility-badge visibility-badge-${visibility}`
   element.innerHTML = `<i class="fa ${visibilityIcon(visibility)}"></i> ${visibilityLabel(visibility)}`
 }
@@ -703,6 +750,7 @@ function autosaveLabel () {
 }
 
 function handleEditorChange () {
+  updateEditorStatus()
   updatePreview()
   dom.titleInput.value = noteTitle(editorValue(), dom.titleInput.value)
   upsertCurrentNote()
@@ -848,23 +896,34 @@ function bind () {
   dom.pubkeyInput.value = state.blogPubkey
   renderIdentity()
 
-  dom.signinButton.addEventListener('click', () => {
+  const bindClick = (element, action) => {
+    if (!element) return
+    element.addEventListener('click', event => {
+      event.preventDefault()
+      action(event)
+    })
+  }
+
+  const unlockPasskey = () => {
     signIn().catch(error => toast(error.message || String(error)))
-  })
+  }
+
+  bindClick(dom.signinButton, unlockPasskey)
+  bindClick(dom.studioSigninButton, unlockPasskey)
   dom.mobileMenuButton.addEventListener('click', () => {
     document.body.classList.toggle('gh-head-open')
   })
-  dom.restoreButton.addEventListener('click', () => {
+  bindClick(dom.restoreButton, () => {
     restoreVault().catch(error => toast(error.message || String(error)))
   })
-  dom.backupButton.addEventListener('click', () => {
+  bindClick(dom.backupButton, () => {
     backupVault().catch(error => toast(error.message || String(error)))
   })
-  dom.newNoteButton.addEventListener('click', newNote)
-  dom.saveButton.addEventListener('click', () => {
+  bindClick(dom.newNoteButton, newNote)
+  bindClick(dom.saveButton, () => {
     saveEncrypted().catch(error => toast(error.message || String(error)))
   })
-  dom.publishButton.addEventListener('click', () => {
+  bindClick(dom.publishButton, () => {
     publishCurrent().catch(error => toast(error.message || String(error)))
   })
   dom.noteList.addEventListener('click', event => {
@@ -879,9 +938,20 @@ function bind () {
   dom.editModeButton.addEventListener('click', () => setEditorMode('edit'))
   dom.bothModeButton.addEventListener('click', () => setEditorMode('both'))
   dom.viewModeButton.addEventListener('click', () => setEditorMode('view'))
+  dom.nightModeButton.addEventListener('click', () => {
+    document.body.classList.toggle('night')
+    dom.nightModeButton.classList.toggle('active', document.body.classList.contains('night'))
+  })
   dom.mobileModeButton.addEventListener('click', () => setEditorMode(
     dom.studioView.classList.contains('mode-view') ? 'edit' : 'view'
   ))
+  bindClick(dom.tocBackToTop, () => {
+    document.querySelector('.ui-view-area').scrollTo({ top: 0, behavior: 'smooth' })
+  })
+  bindClick(dom.tocGoToBottom, () => {
+    const preview = document.querySelector('.ui-view-area')
+    preview.scrollTo({ top: preview.scrollHeight, behavior: 'smooth' })
+  })
   dom.pubkeyForm.addEventListener('submit', event => {
     event.preventDefault()
     state.blogPubkey = dom.pubkeyInput.value.trim()

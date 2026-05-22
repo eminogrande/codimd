@@ -110,13 +110,53 @@
 
 .codimd-root {
     height: calc(100vh - 51px);
+    position: relative;
 }
 
 .codimd-root .ui-content {
     display: grid;
     grid-template-columns: minmax(320px, 1fr) minmax(320px, 1fr);
-    height: 100%;
+    height: calc(100% - 26px);
     align-items: stretch;
+}
+
+.codimd-navbar-spacer {
+    margin-top: 17px;
+    color: #777;
+}
+
+.codimd-mode-nav,
+.codimd-action-nav {
+    padding: 0 !important;
+}
+
+.codimd-mode-nav > li {
+    display: inline-block;
+}
+
+.codimd-mode-nav .btn {
+    height: 34px;
+    min-width: 39px;
+}
+
+.codimd-action-nav > li > a {
+    cursor: pointer;
+}
+
+.codimd-root .ui-status * {
+    font-size: 16px !important;
+}
+
+.codimd-root .ui-user-icon.small {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #337ab7;
+}
+
+.codimd-root .dropdown-menu.list a {
+    cursor: pointer;
 }
 
 .codimd-root.mode-edit .ui-content,
@@ -172,6 +212,20 @@
 
 .ui-edit-area .CodeMirror-scroll {
     height: 100%;
+}
+
+.codimd-root .ui-toc {
+    display: block;
+    right: 18px;
+    bottom: 46px;
+}
+
+.codimd-statusbar {
+    width: 100%;
+}
+
+.codimd-statusbar .status-length {
+    color: #fff;
 }
 
 .visibility-badge {
