@@ -40,6 +40,29 @@
     color: var(--color-darkgrey);
 }
 
+.nostr-passkey-link {
+    background: transparent;
+    border: 0;
+    color: inherit;
+    cursor: pointer;
+    display: inline-block;
+    font: inherit;
+    font-weight: 500;
+    line-height: 1.7;
+    margin: 0;
+    padding: 0;
+}
+
+.gh-head-actions {
+    opacity: 1;
+    visibility: visible;
+}
+
+.nostr-open-blog .gh-head-button {
+    display: inline-flex;
+    min-width: 120px;
+}
+
 .post-feed > .empty {
     grid-column: 1 / -1;
     color: var(--color-secondary-text);

@@ -474,8 +474,8 @@ function showOnly (view) {
   document.body.className = view === 'studio'
     ? 'codimd-template'
     : view === 'post'
-      ? 'post-template is-head-stacked has-serif-title has-sans-body'
-      : 'home-template is-head-stacked has-serif-title has-sans-body'
+      ? 'post-template is-head-stacked has-serif-title has-sans-body is-dropdown-loaded'
+      : 'home-template is-head-stacked has-serif-title has-sans-body is-dropdown-loaded'
   dom.blogHero.classList.toggle('hidden', view !== 'blog')
   dom.blogView.classList.toggle('hidden', view !== 'blog')
   dom.postView.classList.toggle('hidden', view !== 'post')

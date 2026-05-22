@@ -20,7 +20,7 @@
   <link rel="stylesheet" href="./vendor/codemirror/theme/one-dark.css" media="not all" data-codimd-style>
   <link rel="stylesheet" href="./styles.css">
 </head>
-<body class="home-template is-head-stacked has-serif-title has-sans-body">
+<body class="home-template is-head-stacked has-serif-title has-sans-body is-dropdown-loaded">
 <div class="viewport" id="ghostViewport">
   <header id="gh-head" class="gh-head outer">
     <div class="gh-head-inner inner">
@@ -33,11 +33,12 @@
         <ul class="nav">
           <li><a href="#/">Home</a></li>
           <li><a href="#/studio">Private studio</a></li>
+          <li><button class="gh-head-link nostr-passkey-link" id="signinButton" type="button">Passkey</button></li>
         </ul>
       </nav>
 
       <div class="gh-head-actions">
-        <button class="gh-head-button" id="signinButton" type="button">Passkey</button>
+        <a class="gh-head-link" href="#/studio">Studio</a>
       </div>
     </div>
   </header>
