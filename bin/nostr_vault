@@ -1,0 +1,243 @@
+#!/usr/bin/env node
+'use strict'
+
+const fs = require('fs')
+
+const { buildArticleEvent, buildVaultEvent, openVaultEvent } = require('../lib/nostr/vault')
+const { exportUserVault, restoreUserVault, vaultFilter } = require('../lib/nostr/codimd')
+const { fetchLatestReplaceable, publishToRelays } = require('../lib/nostr/relay')
+const { derivePrivateKey, generatePrivateKey, getPublicKey, normalizePrivateKey } = require('../lib/nostr/keys')
+
+let models
+
+function loadModels () {
+  if (!models) {
+    models = require('../lib/models')
+  }
+  return models
+}
+
+function usage () {
+  return [
+    'Usage:',
+    '  bin/nostr_vault keygen [--seed <secret>]',
+    '  bin/nostr_vault backup --user-id <uuid> --private-key <hex> [--relay <wss://...>] [--out <event.json>]',
+    '  bin/nostr_vault fetch --private-key <hex> --relay <wss://...> [--out <vault.json>]',
+    '  bin/nostr_vault restore --user-id <uuid> --private-key <hex> --in <event.json>',
+    '  bin/nostr_vault publish-note --note-id <id|alias> --private-key <hex> [--relay <wss://...>] [--out <event.json>]',
+    '',
+    'Environment:',
+    '  NOSTR_PRIVATE_KEY can be used instead of --private-key.'
+  ].join('\n')
+}
+
+function parseArgs (argv) {
+  const parsed = { _: [] }
+
+  for (let index = 0; index < argv.length; index++) {
+    const arg = argv[index]
+    if (!arg.startsWith('--')) {
+      parsed._.push(arg)
+      continue
+    }
+
+    const eq = arg.indexOf('=')
+    let key
+    let value
+
+    if (eq !== -1) {
+      key = arg.slice(2, eq)
+      value = arg.slice(eq + 1)
+    } else {
+      key = arg.slice(2)
+      value = argv[index + 1]
+      if (value && !value.startsWith('--')) {
+        index++
+      } else {
+        value = true
+      }
+    }
+
+    if (key === 'relay') {
+      if (!parsed.relay) parsed.relay = []
+      parsed.relay.push(value)
+    } else {
+      parsed[key] = value
+    }
+  }
+
+  return parsed
+}
+
+function requireOption (args, name) {
+  if (!args[name]) {
+    throw new Error('Missing --' + name)
+  }
+  return args[name]
+}
+
+function relaysFromArgs (args) {
+  return Array.isArray(args.relay) ? args.relay : []
+}
+
+function privateKeyFromArgs (args) {
+  return normalizePrivateKey(args['private-key'] || process.env.NOSTR_PRIVATE_KEY)
+}
+
+function writeJson (path, data) {
+  fs.writeFileSync(path, JSON.stringify(data, null, 2) + '\n')
+}
+
+function readJson (path) {
+  return JSON.parse(fs.readFileSync(path, 'utf8'))
+}
+
+function printJson (data) {
+  process.stdout.write(JSON.stringify(data, null, 2) + '\n')
+}
+
+async function commandKeygen (args) {
+  const privateKey = args.seed ? derivePrivateKey(args.seed) : generatePrivateKey()
+  printJson({
+    privateKey: privateKey,
+    publicKey: getPublicKey(privateKey)
+  })
+}
+
+async function commandBackup (args) {
+  const privateKey = privateKeyFromArgs(args)
+  const userId = requireOption(args, 'user-id')
+  const models = loadModels()
+  const vault = await exportUserVault(models, userId)
+  const event = buildVaultEvent(vault, privateKey)
+  const relays = relaysFromArgs(args)
+  const publish = relays.length > 0 ? await publishToRelays(relays, event) : []
+
+  if (args.out) {
+    writeJson(args.out, event)
+  }
+
+  printJson({
+    status: 'ok',
+    eventId: event.id,
+    pubkey: event.pubkey,
+    notes: vault.notes.length,
+    out: args.out || null,
+    publish: publish,
+    event: relays.length === 0 && !args.out ? event : undefined
+  })
+}
+
+async function commandFetch (args) {
+  const privateKey = privateKeyFromArgs(args)
+  const relays = relaysFromArgs(args)
+  if (relays.length === 0) {
+    throw new Error('At least one --relay is required')
+  }
+
+  const event = await fetchLatestReplaceable(
+    relays,
+    vaultFilter(getPublicKey(privateKey), args.identifier)
+  )
+
+  if (!event) {
+    throw new Error('No CodiMD vault event found')
+  }
+
+  const vault = openVaultEvent(event, privateKey)
+  if (args.out) {
+    writeJson(args.out, vault)
+  }
+
+  printJson({
+    status: 'ok',
+    eventId: event.id,
+    pubkey: event.pubkey,
+    notes: vault.notes.length,
+    out: args.out || null,
+    vault: args.out ? undefined : vault
+  })
+}
+
+async function commandRestore (args) {
+  const privateKey = privateKeyFromArgs(args)
+  const userId = requireOption(args, 'user-id')
+  const models = loadModels()
+  const input = readJson(requireOption(args, 'in'))
+  const vault = input.kind ? openVaultEvent(input, privateKey) : input
+  const result = await restoreUserVault(models, vault, userId)
+
+  printJson(Object.assign({
+    status: 'ok'
+  }, result))
+}
+
+async function commandPublishNote (args) {
+  const privateKey = privateKeyFromArgs(args)
+  const noteInput = requireOption(args, 'note-id')
+  const models = loadModels()
+  const noteId = models.Note.checkNoteIdValid(noteInput)
+    ? noteInput
+    : await models.Note.parseNoteIdAsync(noteInput)
+  const note = await models.Note.findOne({
+    where: {
+      id: noteId
+    }
+  })
+
+  if (!note) {
+    throw new Error('Note not found')
+  }
+
+  const event = buildArticleEvent(note, privateKey, {
+    identifier: args.identifier,
+    title: args.title,
+    summary: args.summary
+  })
+  const relays = relaysFromArgs(args)
+  const publish = relays.length > 0 ? await publishToRelays(relays, event) : []
+
+  if (args.out) {
+    writeJson(args.out, event)
+  }
+
+  printJson({
+    status: 'ok',
+    eventId: event.id,
+    pubkey: event.pubkey,
+    kind: event.kind,
+    out: args.out || null,
+    publish: publish,
+    event: relays.length === 0 && !args.out ? event : undefined
+  })
+}
+
+async function main () {
+  const args = parseArgs(process.argv.slice(2))
+  const command = args._[0]
+
+  switch (command) {
+    case 'keygen':
+      return commandKeygen(args)
+    case 'backup':
+      return commandBackup(args)
+    case 'fetch':
+      return commandFetch(args)
+    case 'restore':
+      return commandRestore(args)
+    case 'publish-note':
+      return commandPublishNote(args)
+    default:
+      throw new Error(usage())
+  }
+}
+
+main()
+  .then(async () => {
+    if (models) await models.sequelize.close()
+  })
+  .catch(async err => {
+    process.stderr.write(err.message + '\n')
+    if (models) await models.sequelize.close()
+    process.exitCode = 1
+  })

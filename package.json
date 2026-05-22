@@ -37,6 +37,7 @@
     "@hackmd/meta-marked": "~0.5.0",
     "@hackmd/pandoc.js": "0.3.4",
     "@mattermost/client": "^9.2.0",
+    "@noble/secp256k1": "^1.7.1",
     "@passport-next/passport-openid": "~1.0.0",
     "archiver": "^7.0.1",
     "async": "^3.2.4",
