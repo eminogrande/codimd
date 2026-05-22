@@ -3,6 +3,7 @@
 
 export const VAULT_KIND = 30078
 export const ARTICLE_KIND = 30023
+export const PROFILE_KIND = 0
 export const VAULT_IDENTIFIER = 'nostr-hugo-vault'
 export const PRF_SALT_LABEL = 'codimd-nostr-passkey-prf-v1'
 export const PRIVATE_KEY_LABEL = 'codimd-nostr-private-key-v1'
@@ -230,12 +231,22 @@ export function normalizeNote (note) {
   }
 }
 
-export function createVault (pubkey, notes) {
+export function normalizeProfile (profile = {}) {
+  return {
+    name: String(profile.name || '').trim(),
+    about: String(profile.about || '').trim(),
+    picture: String(profile.picture || '').trim(),
+    website: String(profile.website || '').trim()
+  }
+}
+
+export function createVault (pubkey, notes, profile = {}) {
   return {
     version: 1,
     app: 'nostr-hugo',
     exportedAt: new Date().toISOString(),
     pubkey,
+    profile: normalizeProfile(profile),
     notes: notes.map(normalizeNote)
   }
 }
@@ -272,6 +283,14 @@ export function articleEventTemplate (note) {
   }
 }
 
+export function profileEventTemplate (profile) {
+  return {
+    kind: PROFILE_KIND,
+    tags: [],
+    content: JSON.stringify(normalizeProfile(profile))
+  }
+}
+
 export function tagValue (event, name) {
   const tag = (event.tags || []).find(candidate => candidate[0] === name)
   return tag ? tag[1] : ''
@@ -287,5 +306,13 @@ export function publicPostFromEvent (event) {
     content: event.content || '',
     createdAt: new Date((event.created_at || 0) * 1000).toISOString(),
     event
+  }
+}
+
+export function profileFromEvent (event) {
+  try {
+    return normalizeProfile(JSON.parse(event.content || '{}'))
+  } catch (err) {
+    return normalizeProfile()
   }
 }

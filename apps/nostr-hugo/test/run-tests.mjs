@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url'
 
 import {
   ARTICLE_KIND,
+  PROFILE_KIND,
   VAULT_IDENTIFIER,
   VAULT_KIND,
   articleEventTemplate,
@@ -15,6 +16,8 @@ import {
   decryptVaultPayload,
   encryptVaultPayload,
   hashEvent,
+  profileEventTemplate,
+  profileFromEvent,
   publicPostFromEvent,
   vaultEventTemplate
 } from '../public/core.js'
@@ -37,12 +40,15 @@ async function testVaultEncryption () {
     title: 'Private',
     content: '# Secret\n\nhidden marker',
     visibility: 'private'
-  }])
+  }], {
+    name: 'Art & Articles'
+  })
   const box = await encryptVaultPayload(vault, privateKey)
   const serialized = JSON.stringify(box)
   assert.equal(serialized.includes('hidden marker'), false)
   const opened = await decryptVaultPayload(box, privateKey)
   assert.equal(opened.notes[0].content.includes('hidden marker'), true)
+  assert.equal(opened.profile.name, 'Art & Articles')
 }
 
 async function testEvents () {
@@ -69,18 +75,31 @@ async function testEvents () {
   const vaultEvent = vaultEventTemplate({ version: 1 })
   assert.equal(vaultEvent.kind, VAULT_KIND)
   assert(vaultEvent.tags.some(tag => tag[0] === 'd' && tag[1] === VAULT_IDENTIFIER))
+
+  const profileEvent = profileEventTemplate({
+    name: 'Emin Blog',
+    about: 'Readable Nostr posts',
+    picture: 'https://example.com/avatar.jpg'
+  })
+  assert.equal(profileEvent.kind, PROFILE_KIND)
+  assert.equal(profileFromEvent(profileEvent).name, 'Emin Blog')
 }
 
 async function testNoBackendRuntime () {
   const app = await readFile(join(root, 'app.js'), 'utf8')
   const html = await readFile(join(root, 'index.html'), 'utf8')
   const styles = await readFile(join(root, 'styles.css'), 'utf8')
+  const redirects = await readFile(join(root, '_redirects'), 'utf8')
   const wrangler = await readFile(join(root, '..', 'wrangler.toml'), 'utf8')
   assert.equal(app.includes('/api/'), false)
   assert.equal(app.includes('sqlite'), false)
   assert.equal(app.includes('mysql'), false)
   assert.equal(app.includes('scheduleEncryptedAutosave'), true)
   assert.equal(app.includes('encrypted draft autosaved, not published'), true)
+  assert.equal(app.includes('routeParts'), true)
+  assert.equal(app.includes('history.pushState'), true)
+  assert.equal(app.includes('PROFILE_KIND'), true)
+  assert.equal(app.includes('profileEventTemplate'), true)
   assert.equal(app.includes('initCodimdEditor'), true)
   assert.equal(app.includes('window.CodeMirror.fromTextArea'), true)
   assert.equal(app.includes('window.markdownit'), true)
@@ -99,6 +118,7 @@ async function testNoBackendRuntime () {
   assert.equal(html.includes('vendor/bootstrap'), false)
   assert(html.includes('class="site-header"'), true)
   assert(html.includes('class="blog-hero"'), true)
+  assert(html.includes('id="publicBlogHeader"'), true)
   assert(html.includes('class="article-view"'), true)
   assert(html.includes('class="studio-root hidden is-locked"'), true)
   assert(html.includes('id="studioLock"'), true)
@@ -109,13 +129,18 @@ async function testNoBackendRuntime () {
   assert(html.includes('id="visibilityBadge"'), true)
   assert(html.includes('id="blogLink"'), true)
   assert(html.includes('id="identityBlogLink"'), true)
+  assert(html.includes('id="profileNameInput"'), true)
+  assert(html.includes('id="publishProfileButton"'), true)
   assert(html.includes('id="online-user-list"'), true)
   assert(html.includes('class="studio-statusbar"'), true)
   assert(app.includes('function hasUnlockedPasskey'), true)
   assert(app.includes('if (!hasUnlockedPasskey()) return'), true)
   assert(styles.includes('.post-card'), true)
+  assert(styles.includes('.public-blog-header'), true)
+  assert(styles.includes('.studio-profile-form'), true)
   assert(styles.includes('.article-title'), true)
   assert(styles.includes('.blog-loader'), true)
+  assert(redirects.includes('/* /index.html 200'), true)
   assert(wrangler.includes('pages_build_output_dir = "public"'), true)
 }
 

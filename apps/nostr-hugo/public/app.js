@@ -8,6 +8,7 @@ import {
   ARTICLE_KIND,
   DEFAULT_RELAYS,
   PRIVATE_KEY_LABEL,
+  PROFILE_KIND,
   VAULT_IDENTIFIER,
   VAULT_KIND,
   articleEventTemplate,
@@ -22,7 +23,10 @@ import {
   hexToBytes,
   hmacSha256Bytes,
   normalizeNote,
+  normalizeProfile,
   prfSalt,
+  profileEventTemplate,
+  profileFromEvent,
   publicPostFromEvent,
   tagValue,
   utf8,
@@ -51,8 +55,11 @@ let markdownRenderer = null
 const state = {
   privateKey: null,
   pubkey: null,
+  profile: normalizeProfile(),
+  blogProfile: normalizeProfile(),
   notes: [],
   posts: [],
+  postsPubkey: '',
   selectedId: null,
   relays: loadRelays(),
   blogPubkey: localStorage.getItem(pubkeyStorageKey) || ''
@@ -60,11 +67,16 @@ const state = {
 
 const dom = {
   signinButton: document.getElementById('signinButton'),
+  siteBrand: document.getElementById('siteBrand'),
   studioSigninButton: document.getElementById('studioSigninButton'),
   lockSigninButton: document.getElementById('lockSigninButton'),
   studioLock: document.getElementById('studioLock'),
   identityLabel: document.getElementById('identityLabel'),
   identityBlogLink: document.getElementById('identityBlogLink'),
+  profileNameInput: document.getElementById('profileNameInput'),
+  profileAboutInput: document.getElementById('profileAboutInput'),
+  profilePictureInput: document.getElementById('profilePictureInput'),
+  publishProfileButton: document.getElementById('publishProfileButton'),
   relaysInput: document.getElementById('relaysInput'),
   restoreButton: document.getElementById('restoreButton'),
   backupButton: document.getElementById('backupButton'),
@@ -89,10 +101,18 @@ const dom = {
   blogView: document.querySelector('[data-view="blog"]'),
   studioView: document.getElementById('studioView'),
   blogHero: document.getElementById('blogHero'),
+  publicBlogHeader: document.getElementById('publicBlogHeader'),
+  publicBlogAvatar: document.getElementById('publicBlogAvatar'),
+  publicBlogTitle: document.getElementById('publicBlogTitle'),
+  publicBlogAbout: document.getElementById('publicBlogAbout'),
+  publicBlogPubkey: document.getElementById('publicBlogPubkey'),
+  feedTitle: document.getElementById('feedTitle'),
   postTitle: document.getElementById('postTitle'),
   postExcerpt: document.getElementById('postExcerpt'),
+  postAuthor: document.getElementById('postAuthor'),
   postDate: document.getElementById('postDate'),
   postReadingTime: document.getElementById('postReadingTime'),
+  postBackLink: document.getElementById('postBackLink'),
   postContent: document.getElementById('postContent'),
   docPreview: document.getElementById('doc'),
   siteFooter: document.getElementById('siteFooter'),
@@ -128,6 +148,36 @@ function toast (message) {
   dom.toast.classList.add('visible')
   clearTimeout(toast.timer)
   toast.timer = setTimeout(() => dom.toast.classList.remove('visible'), 3600)
+}
+
+function isValidPubkey (pubkey) {
+  return /^[0-9a-f]{64}$/i.test(pubkey)
+}
+
+function shortPubkey (pubkey) {
+  return isValidPubkey(pubkey) ? pubkey.slice(0, 8) + '...' + pubkey.slice(-6) : ''
+}
+
+function blogPath (pubkey = state.blogPubkey) {
+  return isValidPubkey(pubkey) ? '/' + pubkey : '/'
+}
+
+function postPath (pubkey, slug) {
+  return blogPath(pubkey) + '/' + encodeURIComponent(slug)
+}
+
+function navigateTo (path) {
+  if (location.pathname + location.search + location.hash === path) return
+  history.pushState({}, '', path)
+  document.body.classList.remove('nav-open')
+  route().catch(error => toast(error.message || String(error)))
+}
+
+function routeParts () {
+  if (location.hash) {
+    return location.hash.replace(/^#\/?/, '').split('/').filter(Boolean)
+  }
+  return location.pathname.replace(/^\/+|\/+$/g, '').split('/').filter(Boolean)
 }
 
 function requireKey () {
@@ -230,10 +280,10 @@ async function signIn () {
   dom.pubkeyInput.value = state.pubkey
   renderIdentity()
   await restoreVault({ silent: true })
-  if (location.hash === '#/studio') {
+  if (routeParts()[0] === 'studio') {
     await route()
   } else {
-    location.hash = '#/studio'
+    navigateTo('/studio')
   }
   toast('Passkey unlocked Nostr identity')
 }
@@ -350,9 +400,51 @@ async function fetchLatestVault () {
   return batches.flat().sort((a, b) => b.created_at - a.created_at)[0] || null
 }
 
+async function fetchPublicProfile (pubkey = state.blogPubkey) {
+  if (!isValidPubkey(pubkey)) {
+    state.blogProfile = normalizeProfile()
+    return state.blogProfile
+  }
+  saveRelays()
+  const filter = {
+    kinds: [PROFILE_KIND],
+    authors: [pubkey],
+    limit: 5
+  }
+  const batches = await Promise.all(state.relays.map(relay => queryRelay(relay, filter)))
+  const event = batches.flat().sort((a, b) => b.created_at - a.created_at)[0]
+  state.blogProfile = event ? profileFromEvent(event) : normalizeProfile()
+  return state.blogProfile
+}
+
+function profileFromForm () {
+  return normalizeProfile({
+    name: dom.profileNameInput.value,
+    about: dom.profileAboutInput.value,
+    picture: dom.profilePictureInput.value
+  })
+}
+
+function renderProfileForm () {
+  if (!dom.profileNameInput) return
+  dom.profileNameInput.value = state.profile.name || ''
+  dom.profileAboutInput.value = state.profile.about || ''
+  dom.profilePictureInput.value = state.profile.picture || ''
+}
+
+async function publishProfile () {
+  state.profile = profileFromForm()
+  const event = await signEvent(profileEventTemplate(state.profile))
+  const published = await publishToRelays(event)
+  if (state.blogPubkey === state.pubkey) state.blogProfile = state.profile
+  await backupVault({ silent: true })
+  toast(`Public blog profile published to ${published.ok}/${published.total} relays`)
+}
+
 async function backupVault (options = {}) {
   requireKey()
-  const vault = createVault(state.pubkey, state.notes)
+  if (hasUnlockedPasskey()) state.profile = profileFromForm()
+  const vault = createVault(state.pubkey, state.notes, state.profile)
   const box = await encryptVaultPayload(vault, state.privateKey)
   const event = await signEvent(vaultEventTemplate(box))
   const published = await publishToRelays(event)
@@ -370,7 +462,9 @@ async function restoreVault (options = {}) {
   }
   const vault = await decryptVaultPayload(JSON.parse(event.content), state.privateKey)
   state.notes = Array.isArray(vault.notes) ? vault.notes.map(normalizeNote) : []
+  state.profile = normalizeProfile(vault.profile || state.profile)
   state.selectedId = state.notes[0] ? state.notes[0].id : null
+  renderProfileForm()
   renderNotes()
   renderEditor()
   if (!options.silent) toast(`Restored ${state.notes.length} encrypted notes`)
@@ -428,7 +522,9 @@ async function publishCurrent () {
 
 async function fetchPublicPosts () {
   const pubkey = state.blogPubkey
-  if (!/^[0-9a-f]{64}$/i.test(pubkey)) {
+  if (!isValidPubkey(pubkey)) {
+    state.posts = []
+    state.postsPubkey = ''
     dom.postGrid.innerHTML = '<p class="empty">Enter a public key or sign in to load a blog.</p>'
     return
   }
@@ -448,6 +544,7 @@ async function fetchPublicPosts () {
   state.posts = Array.from(bySlug.values())
     .sort((a, b) => b.created_at - a.created_at)
     .map(publicPostFromEvent)
+  state.postsPubkey = pubkey
   renderPosts()
 }
 
@@ -489,9 +586,13 @@ function showOnly (view) {
     ? 'page-studio'
     : view === 'post'
       ? 'page-post'
-      : 'page-blog'
-  dom.blogHero.classList.toggle('hidden', view !== 'blog')
-  dom.blogView.classList.toggle('hidden', view !== 'blog')
+      : view === 'public-blog'
+        ? 'page-public-blog'
+        : 'page-landing'
+  dom.blogHero.classList.toggle('hidden', view !== 'landing')
+  dom.publicBlogHeader.classList.toggle('hidden', view !== 'public-blog')
+  dom.pubkeyForm.classList.toggle('hidden', view !== 'landing')
+  dom.blogView.classList.toggle('hidden', view !== 'landing' && view !== 'public-blog')
   dom.postView.classList.toggle('hidden', view !== 'post')
   dom.studioView.classList.toggle('hidden', view !== 'studio')
   dom.siteFooter.classList.toggle('hidden', view === 'studio')
@@ -508,12 +609,52 @@ function renderIdentity () {
     : 'Local browser'
   dom.onlineCountLabel.textContent = '1'
   const blogPubkey = state.pubkey || state.blogPubkey
-  const blogHref = /^[0-9a-f]{64}$/i.test(blogPubkey) ? '#/blog/' + blogPubkey : '#/'
+  const blogHref = blogPath(blogPubkey)
   dom.blogLink.href = blogHref
   dom.identityBlogLink.href = blogHref
   dom.identityBlogLink.textContent = /^[0-9a-f]{64}$/i.test(blogPubkey)
     ? 'Open Nostr blog'
     : 'Unlock passkey to open blog'
+}
+
+function profileDisplayName (pubkey = state.blogPubkey) {
+  const profile = pubkey === state.blogPubkey ? state.blogProfile : state.profile
+  return profile.name || (pubkey ? 'Nostr blog ' + shortPubkey(pubkey) : 'Nostr Hugo')
+}
+
+function renderSiteBrand (pubkey = '') {
+  if (/^[0-9a-f]{64}$/i.test(pubkey)) {
+    dom.siteBrand.textContent = profileDisplayName(pubkey)
+    dom.siteBrand.href = blogPath(pubkey)
+  } else {
+    dom.siteBrand.textContent = 'Nostr Hugo'
+    dom.siteBrand.href = '/'
+  }
+}
+
+function renderPublicBlogHeader () {
+  const pubkey = state.blogPubkey
+  const profile = state.blogProfile
+  const name = profileDisplayName(pubkey)
+  dom.publicBlogTitle.textContent = name
+  dom.publicBlogAbout.textContent = profile.about || 'Public long-form posts published to Nostr relays.'
+  dom.publicBlogPubkey.textContent = shortPubkey(pubkey)
+  dom.feedTitle.textContent = 'Posts'
+  dom.publicBlogAvatar.innerHTML = ''
+  if (profile.picture && /^https?:\/\//i.test(profile.picture)) {
+    const image = document.createElement('img')
+    image.src = profile.picture
+    image.alt = name
+    dom.publicBlogAvatar.appendChild(image)
+  } else {
+    dom.publicBlogAvatar.textContent = name.trim().slice(0, 1).toUpperCase() || 'N'
+  }
+  renderSiteBrand(pubkey)
+}
+
+function firstMarkdownImage (content) {
+  const match = String(content || '').match(/!\[[^\]]*]\((https?:\/\/[^)\s]+)(?:\s+"[^"]*")?\)/i)
+  return match ? match[1] : ''
 }
 
 function hasUnlockedPasskey () {
@@ -524,7 +665,7 @@ function renderStudioAccess () {
   const locked = !hasUnlockedPasskey()
   dom.studioView.classList.toggle('is-locked', locked)
   dom.studioView.classList.toggle('is-unlocked', !locked)
-  const lockedButtons = [dom.newNoteButton, dom.publishButton, dom.backupButton, dom.restoreButton, dom.saveButton]
+  const lockedButtons = [dom.newNoteButton, dom.publishButton, dom.backupButton, dom.restoreButton, dom.saveButton, dom.publishProfileButton]
   lockedButtons.forEach(button => {
     if (button) button.disabled = locked
   })
@@ -535,9 +676,11 @@ function renderPosts () {
     dom.postGrid.innerHTML = '<p class="empty">No public posts found on the configured relays.</p>'
     return
   }
+  const pubkey = state.postsPubkey || state.blogPubkey
   dom.postGrid.innerHTML = state.posts.map((post, index) => `
     <article class="post-card${index === 0 ? ' post-card-large' : ''}">
-      <a class="post-card-link" href="#/post/${state.blogPubkey}/${encodeURIComponent(post.slug)}">
+      <a class="post-card-link" href="${postPath(pubkey, post.slug)}">
+        ${firstMarkdownImage(post.content) ? `<img class="post-card-image" src="${escapeHtml(firstMarkdownImage(post.content))}" alt="">` : ''}
         <span class="post-card-kicker">Nostr article</span>
         <h2 class="post-card-title">${escapeHtml(post.title)}</h2>
         <p class="post-card-excerpt">${escapeHtml(post.summary)}</p>
@@ -550,6 +693,17 @@ function renderPosts () {
   `).join('')
 }
 
+function renderPostLoading () {
+  dom.postBackLink.href = blogPath(state.blogPubkey)
+  dom.postBackLink.innerHTML = '<i class="fa fa-angle-left"></i> Back to posts'
+  dom.postAuthor.textContent = profileDisplayName(state.blogPubkey)
+  dom.postTitle.textContent = 'Loading post...'
+  dom.postExcerpt.textContent = ''
+  dom.postDate.textContent = ''
+  if (dom.postReadingTime) dom.postReadingTime.textContent = 'public relay post'
+  dom.postContent.innerHTML = '<p>Loading this post from Nostr relays.</p>'
+}
+
 function renderPost (slug) {
   const post = state.posts.find(candidate => candidate.slug === slug)
   if (!post) {
@@ -557,9 +711,14 @@ function renderPost (slug) {
     dom.postExcerpt.textContent = ''
     dom.postDate.textContent = ''
     if (dom.postReadingTime) dom.postReadingTime.textContent = 'public relay post'
+    dom.postAuthor.textContent = profileDisplayName(state.blogPubkey)
+    dom.postBackLink.href = blogPath(state.blogPubkey)
     dom.postContent.innerHTML = '<p>Refresh the blog and try again.</p>'
     return
   }
+  dom.postBackLink.href = blogPath(state.blogPubkey)
+  dom.postBackLink.innerHTML = '<i class="fa fa-angle-left"></i> Back to posts'
+  dom.postAuthor.textContent = profileDisplayName(state.blogPubkey)
   dom.postTitle.textContent = post.title
   dom.postExcerpt.textContent = post.summary
   dom.postDate.textContent = formatDate(post.createdAt)
@@ -880,9 +1039,19 @@ function setEditorMode (mode) {
 }
 
 async function route () {
-  const parts = location.hash.replace(/^#\/?/, '').split('/').filter(Boolean)
+  const parts = routeParts()
+  if (parts[0] === 'blog' && parts[1]) {
+    navigateTo(blogPath(parts[1]))
+    return
+  }
+  if (parts[0] === 'post' && parts[1]) {
+    navigateTo(postPath(parts[1], decodeURIComponent(parts[2] || '')))
+    return
+  }
+
   if (parts[0] === 'studio') {
     showOnly('studio')
+    renderSiteBrand('')
     renderIdentity()
     renderStudioAccess()
     if (!hasUnlockedPasskey()) return
@@ -891,22 +1060,31 @@ async function route () {
     return
   }
 
-  if (parts[0] === 'post') {
-    state.blogPubkey = parts[1] || state.blogPubkey
-    const slug = decodeURIComponent(parts[2] || '')
-    showOnly('post')
-    if (!state.posts.length) await fetchPublicPosts()
-    renderPost(slug)
+  if (isValidPubkey(parts[0])) {
+    const pubkey = parts[0].toLowerCase()
+    const slug = decodeURIComponent(parts[1] || '')
+    state.blogPubkey = pubkey
+    localStorage.setItem(pubkeyStorageKey, state.blogPubkey)
+    dom.pubkeyInput.value = state.blogPubkey
+    await fetchPublicProfile(pubkey)
+    renderPublicBlogHeader()
+    if (slug) {
+      showOnly('post')
+      renderPostLoading()
+      if (state.postsPubkey !== pubkey) await fetchPublicPosts()
+      renderPost(slug)
+      return
+    }
+    showOnly('public-blog')
+    await fetchPublicPosts()
     return
   }
 
-  if (parts[0] === 'blog' && parts[1]) {
-    state.blogPubkey = parts[1]
-    localStorage.setItem(pubkeyStorageKey, state.blogPubkey)
-  }
-
   dom.pubkeyInput.value = state.blogPubkey
-  showOnly('blog')
+  state.blogProfile = normalizeProfile()
+  renderSiteBrand('')
+  dom.feedTitle.textContent = 'Latest public Nostr posts'
+  showOnly('landing')
   await fetchPublicPosts()
 }
 
@@ -940,6 +1118,9 @@ function bind () {
   })
   bindClick(dom.backupButton, () => {
     backupVault().catch(error => toast(error.message || String(error)))
+  })
+  bindClick(dom.publishProfileButton, () => {
+    publishProfile().catch(error => toast(error.message || String(error)))
   })
   bindClick(dom.newNoteButton, newNote)
   bindClick(dom.saveButton, () => {
@@ -978,12 +1159,27 @@ function bind () {
   })
   dom.pubkeyForm.addEventListener('submit', event => {
     event.preventDefault()
-    state.blogPubkey = dom.pubkeyInput.value.trim()
+    state.blogPubkey = dom.pubkeyInput.value.trim().toLowerCase()
+    if (!isValidPubkey(state.blogPubkey)) {
+      toast('Enter a 64 character Nostr public key hex')
+      return
+    }
     localStorage.setItem(pubkeyStorageKey, state.blogPubkey)
-    location.hash = '#/blog/' + state.blogPubkey
+    navigateTo(blogPath(state.blogPubkey))
   })
   dom.refreshPublicButton.addEventListener('click', () => {
     fetchPublicPosts().catch(error => toast(error.message || String(error)))
+  })
+  document.addEventListener('click', event => {
+    const anchor = event.target.closest('a[href]')
+    if (!anchor || anchor.target || anchor.origin !== location.origin) return
+    const href = anchor.getAttribute('href')
+    if (!href || href.startsWith('#')) return
+    event.preventDefault()
+    navigateTo(anchor.pathname + anchor.search + anchor.hash)
+  })
+  window.addEventListener('popstate', () => {
+    route().catch(error => toast(error.message || String(error)))
   })
   window.addEventListener('hashchange', () => {
     route().catch(error => toast(error.message || String(error)))

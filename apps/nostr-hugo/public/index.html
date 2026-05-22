@@ -6,25 +6,26 @@
   <meta name="HandheldFriendly" content="True">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="color-scheme" content="light">
+  <base href="/">
   <title>Nostr Hugo</title>
   <link rel="stylesheet" href="./fork-awesome/css/fork-awesome.min.css">
   <link rel="stylesheet" href="./vendor/codemirror/lib/codemirror.css">
   <link rel="stylesheet" href="./styles.css">
 </head>
-<body class="page-blog">
+<body class="page-landing">
 <div class="viewport" id="appViewport">
   <header class="site-header" id="siteHeader">
     <div class="site-header-inner">
-      <a class="site-brand" href="#/">Nostr Hugo</a>
+      <a class="site-brand" id="siteBrand" href="/">Nostr Hugo</a>
       <button class="nav-toggle" id="mobileMenuButton" type="button" aria-label="Main Menu">
         <i class="fa fa-bars"></i>
       </button>
       <nav class="site-nav">
-        <a href="#/">Home</a>
-        <a href="#/studio">Private studio</a>
+        <a href="/">Home</a>
+        <a href="/studio">Private studio</a>
         <button class="link-button" id="signinButton" type="button">Passkey</button>
       </nav>
-      <a class="site-action" href="#/studio">Studio</a>
+      <a class="site-action" href="/studio">Studio</a>
     </div>
   </header>
 
@@ -33,6 +34,16 @@
       <p class="blog-kicker">Nostr-backed static publishing</p>
       <h1>Nostr Hugo</h1>
       <p>A lightweight markdown blog with Hugo-style reading, passkey identity, and no server database.</p>
+    </section>
+
+    <section class="public-blog-header hidden" id="publicBlogHeader">
+      <div class="public-blog-avatar" id="publicBlogAvatar"></div>
+      <div>
+        <p class="blog-kicker">Personal Nostr blog</p>
+        <h1 id="publicBlogTitle">Nostr blog</h1>
+        <p id="publicBlogAbout">Public posts loaded from Nostr relays.</p>
+        <p class="public-blog-pubkey" id="publicBlogPubkey"></p>
+      </div>
     </section>
 
     <main id="site-main" class="blog-main" data-view="blog">
@@ -46,7 +57,7 @@
         </form>
 
         <div class="feed-tools">
-          <p>Latest public Nostr posts</p>
+          <p id="feedTitle">Latest public Nostr posts</p>
           <button class="site-button light" id="refreshPublicButton" type="button">Refresh</button>
         </div>
         <div class="post-feed" id="postGrid"></div>
@@ -55,13 +66,13 @@
 
     <main id="postView" class="article-main hidden" data-view="post">
       <article class="article-view">
-        <a href="#/" class="article-back"><i class="fa fa-angle-left"></i> Back to latest</a>
+        <a href="/" class="article-back" id="postBackLink"><i class="fa fa-angle-left"></i> Back to latest</a>
         <header class="article-header">
           <p class="article-kicker">Nostr article</p>
           <h1 class="article-title" id="postTitle"></h1>
           <p class="article-excerpt" id="postExcerpt"></p>
           <div class="article-meta">
-            <span>Nostr</span>
+            <span id="postAuthor">Nostr</span>
             <time id="postDate"></time>
             <span id="postReadingTime">public relay post</span>
           </div>
@@ -72,7 +83,7 @@
 
     <section class="studio-root hidden is-locked" id="studioView" data-view="studio">
       <header class="studio-topbar">
-        <a class="studio-brand" href="#/">
+        <a class="studio-brand" href="/">
           <i class="fa fa-key"></i>
           <span>Nostr Studio</span>
         </a>
@@ -92,7 +103,7 @@
           <span>online</span>
           <span id="onlineIdentityLabel">Local browser</span>
         </div>
-        <a class="studio-button secondary" id="blogLink" href="#/"><i class="fa fa-external-link"></i> Blog</a>
+        <a class="studio-button secondary" id="blogLink" href="/"><i class="fa fa-external-link"></i> Blog</a>
         <button class="studio-button secondary" id="newNoteButton" type="button"><i class="fa fa-plus"></i> New</button>
         <button class="studio-button" id="publishButton" type="button"><i class="fa fa-share-square-o"></i> Publish</button>
         <button class="studio-button primary" id="studioSigninButton" type="button"><i class="fa fa-key"></i> Unlock passkey</button>
@@ -112,7 +123,25 @@
           <section class="studio-panel">
             <div class="studio-panel-header">Identity</div>
             <p class="studio-identity" id="identityLabel">Not signed in</p>
-            <a id="identityBlogLink" class="studio-link" href="#/">Open Nostr blog</a>
+            <a id="identityBlogLink" class="studio-link" href="/">Open Nostr blog</a>
+          </section>
+          <section class="studio-panel">
+            <div class="studio-panel-header">Public blog profile</div>
+            <div class="studio-profile-form">
+              <label>
+                <span>Blog name</span>
+                <input id="profileNameInput" placeholder="Art & Articles by Emin">
+              </label>
+              <label>
+                <span>Description</span>
+                <textarea id="profileAboutInput" placeholder="Short public description"></textarea>
+              </label>
+              <label>
+                <span>Picture URL</span>
+                <input id="profilePictureInput" placeholder="https://...">
+              </label>
+              <button class="studio-button secondary" id="publishProfileButton" type="button"><i class="fa fa-user"></i> Publish profile</button>
+            </div>
           </section>
           <section class="studio-panel">
             <div class="studio-panel-header">Nostr relays</div>
@@ -185,8 +214,8 @@
     <div class="site-footer-inner">
       <span>Nostr Hugo &copy; 2026</span>
       <nav>
-        <a href="#/">Latest</a>
-        <a href="#/studio">Private studio</a>
+        <a href="/">Latest</a>
+        <a href="/studio">Private studio</a>
       </nav>
       <a href="https://github.com/eminogrande/codimd/tree/nostr-vault-cli" target="_blank" rel="noopener">Nostr backend</a>
     </div>

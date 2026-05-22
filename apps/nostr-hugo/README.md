@@ -8,10 +8,18 @@ The important runtime rule is: there is no publishing server and no local or hos
 
 - Private workspace: encrypted vault event, `kind 30078`, `d=nostr-hugo-vault`.
 - Public blog: Hugo-style static blog UI rendering public long-form Nostr events, `kind 30023`.
+- Public profile: Nostr metadata event, `kind 0`, used for the blog name, description, and avatar.
 - Private editor: browser-only markdown studio with edit/both/view modes, backed only by the encrypted Nostr vault.
 - Backup: the encrypted vault contains all notes, including public note source.
 - Identity: passkey PRF derives deterministic Nostr key material.
 - Deployment: Cloudflare Pages static output from `apps/nostr-hugo/public`.
+
+## Routes
+
+- `/` is the landing page and public-key loader.
+- `/<nostr-pubkey-hex>` is an individual public blog.
+- `/<nostr-pubkey-hex>/<post-slug>` is the focused single-post view.
+- `/studio` is the locked private markdown studio.
 
 ## Cloudflare Pages
 
@@ -27,6 +35,8 @@ For Wrangler-based deployment:
 cd apps/nostr-hugo
 wrangler pages deploy public
 ```
+
+`public/_redirects` keeps direct blog URLs like `/<nostr-pubkey-hex>` and `/<nostr-pubkey-hex>/<post-slug>` working as SPA routes on Cloudflare Pages.
 
 ## Local Smoke Test
 
