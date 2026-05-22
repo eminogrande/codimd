@@ -28,6 +28,7 @@ import List from 'list.js'
 import unescapeHTML from 'lodash/unescape'
 
 require('./locale')
+require('./nostr-passkey')
 
 require('../css/cover.css')
 require('../css/site.css')

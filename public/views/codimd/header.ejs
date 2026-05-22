@@ -35,7 +35,7 @@
                 </li>
                 <li role="presentation"><a role="menuitem" class="ui-extra-slide" tabindex="-1" href="#" target="_blank" rel="noopener"><i class="fa fa-tv fa-fw"></i> <%= __('Slide Mode') %></a>
                 </li>
-                <% if(enableGitHubGist || enableDropBoxSave || enableGitlabSnippets) { %>
+                <% if(enableGitHubGist || enableDropBoxSave || enableGitlabSnippets || authProviders.nostrPasskey) { %>
                 <li class="divider"></li>
                 <li class="dropdown-header"><%= __('Export') %></li>
                 <li role="presentation"><a role="menuitem" class="ui-save-dropbox" tabindex="-1" href="#" target="_self"><i class="fa fa-dropbox fa-fw"></i> Dropbox</a>
@@ -44,6 +44,8 @@
                 <li role="presentation"><a role="menuitem" class="ui-save-gist" tabindex="-1" href="#" target="_blank" rel="noopener"><i class="fa fa-github fa-fw"></i> Gist</a>
                 </li>
                 <% } %>
+                <li role="presentation"><a role="menuitem" class="ui-publish-nostr" tabindex="-1" href="#"><i class="fa fa-key fa-fw"></i> Nostr</a>
+                </li>
                 <% if(enableGitlabSnippets) { %>
                 <li role="presentation"><a role="menuitem" class="ui-save-snippet" href="#"><i class="fa fa-gitlab fa-fw"></i> Snippet</a>
                 </li>
@@ -141,7 +143,7 @@
                     </li>
                     <li role="presentation"><a role="menuitem" class="ui-extra-slide" tabindex="-1" href="#" target="_blank" rel="noopener"><i class="fa fa-tv fa-fw"></i> <%= __('Slide Mode') %></a>
                     </li>
-                    <% if(enableGitHubGist || enableDropBoxSave || enableGitlabSnippets) { %>
+                    <% if(enableGitHubGist || enableDropBoxSave || enableGitlabSnippets || authProviders.nostrPasskey) { %>
                     <li class="divider"></li>
                     <li class="dropdown-header"><%= __('Export') %></li>
                     <li role="presentation"><a role="menuitem" class="ui-save-dropbox" tabindex="-1" href="#" target="_self"><i class="fa fa-dropbox fa-fw"></i> Dropbox</a>
@@ -150,6 +152,8 @@
                     <li role="presentation"><a role="menuitem" class="ui-save-gist" tabindex="-1" href="#" target="_blank" rel="noopener"><i class="fa fa-github fa-fw"></i> Gist</a>
                     </li>
                     <% } %>
+                    <li role="presentation"><a role="menuitem" class="ui-publish-nostr" tabindex="-1" href="#"><i class="fa fa-key fa-fw"></i> Nostr</a>
+                    </li>
                     <% if(enableGitlabSnippets) { %>
                     <li role="presentation"><a role="menuitem" class="ui-save-snippet" href="#"><i class="fa fa-gitlab fa-fw"></i> Snippet</a>
                     </li>

@@ -957,6 +957,34 @@ ui.toolbar.export.dropbox.click(function () {
 })
 // export to gist
 ui.toolbar.export.gist.attr('href', noteurl + '/gist')
+// publish to nostr
+$('.ui-publish-nostr').click(function (e) {
+  e.preventDefault()
+  e.stopPropagation()
+
+  var relay = window.prompt('Nostr relay', 'wss://relay.damus.io')
+  if (!relay) return
+
+  ui.spinner.show()
+  $.ajax({
+    method: 'POST',
+    url: serverurl + '/api/nostr/publish/' + noteid,
+    contentType: 'application/json',
+    data: JSON.stringify({
+      relays: [relay]
+    })
+  })
+    .done(function (data) {
+      var ok = data.publish.filter(function (result) { return result.ok }).length
+      showMessageModal('<i class="fa fa-key"></i> Publish to Nostr', 'Published to ' + ok + ' relay(s).', '', 'Event: ' + data.eventId, true)
+    })
+    .fail(function (xhr) {
+      showMessageModal('<i class="fa fa-key"></i> Publish to Nostr', xhr.responseJSON ? xhr.responseJSON.message : 'Publish failed', '', '', false)
+    })
+    .always(function () {
+      ui.spinner.hide()
+    })
+})
 // export to snippet
 ui.toolbar.export.snippet.click(function () {
   ui.spinner.show()

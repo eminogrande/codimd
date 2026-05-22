@@ -8,6 +8,12 @@
                 <h4 class="modal-title" id="mySmallModalLabel"><%= __('Choose method') %></h4>
             </div>
             <div class="modal-body" style="text-align: center;">
+                <% if (authProviders.nostrPasskey) { %>
+                <button type="button" class="btn btn-lg btn-block btn-login-method btn-primary ui-nostr-passkey">
+                    <i class="fa fa-key"></i> Sign in with Nostr passkey
+                </button>
+                <p class="ui-nostr-passkey-status" style="word-break: break-word;"></p>
+                <% } %>
                 <% if (authProviders.facebook) { %>
                 <a href="<%- serverURL %>/auth/facebook" class="btn btn-lg btn-block btn-login-method btn-facebook">
                     <i class="fa fa-facebook"></i> <%= __('Sign in via %s', 'Facebook') %>

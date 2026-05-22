@@ -15,7 +15,7 @@
                                 <% if (allowAnonymous) { %>
                                 <a type="button" href="<%- serverURL %>/new" class="btn btn-sm btn-primary"><i class="fa fa-plus"></i> <%= __('New guest note') %></a>
                                 <% } %>
-                                <% if (authProviders.facebook || authProviders.twitter || authProviders.github || authProviders.bitbucket || authProviders.gitlab ||authProviders.mattermost || authProviders.dropbox || authProviders.google || authProviders.ldap || authProviders.saml || authProviders.oauth2 || authProviders.email) { %>
+                                <% if (authProviders.nostrPasskey || authProviders.facebook || authProviders.twitter || authProviders.github || authProviders.bitbucket || authProviders.gitlab ||authProviders.mattermost || authProviders.dropbox || authProviders.google || authProviders.ldap || authProviders.saml || authProviders.oauth2 || authProviders.email) { %>
                                 <button class="btn btn-sm btn-success ui-signin" data-toggle="modal" data-target=".signin-modal"><%= __('Sign In') %></button>
                                 <% } %>
                             </div>
@@ -30,6 +30,7 @@
                                     </button>
                                     <ul class="dropdown-menu" aria-labelledby="profileLabel">
                                         <li><a href="<%- serverURL %>/features"><i class="fa fa-dot-circle-o fa-fw"></i> <%= __('Features') %></a></li>
+                                        <li><a href="#" data-toggle="modal" data-target=".nostr-vault-modal"><i class="fa fa-key fa-fw"></i> Nostr backup</a></li>
                                         <li><a href="#" class="ui-export-user-data"><i class="fa fa-cloud-download fa-fw"></i> <%= __('Export user data') %></a></li>
                                         <li><a class="ui-delete-user" data-toggle="modal" data-target=".delete-user-modal"><i class="fa fa-trash fa-fw"></i> <%= __('Delete user') %></a></li>
                                         <li><a href="<%- serverURL %>/logout"><i class="fa fa-sign-out fa-fw"></i> <%= __('Sign Out') %></a></li>
@@ -53,7 +54,7 @@
                     <% if (errorMessage && errorMessage.length > 0) { %>
                     <div class="alert alert-danger" style="max-width: 400px; margin: 0 auto;"><%= errorMessage %></div>
                     <% } %>
-                    <% if (authProviders.facebook || authProviders.twitter || authProviders.github|| authProviders.bitbucket || authProviders.gitlab || authProviders.mattermost || authProviders.dropbox || authProviders.google || authProviders.ldap || authProviders.saml || authProviders.oauth2 || authProviders.email) { %>
+                    <% if (authProviders.nostrPasskey || authProviders.facebook || authProviders.twitter || authProviders.github|| authProviders.bitbucket || authProviders.gitlab || authProviders.mattermost || authProviders.dropbox || authProviders.google || authProviders.ldap || authProviders.saml || authProviders.oauth2 || authProviders.email) { %>
                     <span class="ui-signin">
                         <br>
                         <a type="button" class="btn btn-lg btn-success ui-signin" data-toggle="modal" data-target=".signin-modal" style="min-width: 200px;"><%= __('Sign In') %></a>
@@ -201,6 +202,30 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-default ui-delete-user-modal-cancel" data-dismiss="modal"><%= __('Cancel') %></button>
                 <a type="button" class="btn btn-danger" href="<%- serverURL %>/me/delete/<%- deleteToken %>"><%= __('Yes, do it!') %></a>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- nostr vault modal -->
+<div class="modal fade nostr-vault-modal" tabindex="-1" role="dialog" aria-labelledby="nostrVaultModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title" id="nostrVaultModalLabel">Nostr backup</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Relay</label>
+                    <input type="url" class="form-control ui-nostr-relay" value="wss://relay.damus.io">
+                </div>
+                <p class="ui-nostr-vault-status"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal"><%= __('Cancel') %></button>
+                <button type="button" class="btn btn-warning ui-nostr-restore">Restore from Nostr</button>
+                <button type="button" class="btn btn-primary ui-nostr-backup">Backup to Nostr</button>
             </div>
         </div>
     </div>
